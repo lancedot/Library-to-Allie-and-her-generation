@@ -177,6 +177,18 @@ const html = String.raw`<!doctype html>
       min-height: 100vh;
     }
 
+    body[data-view="home"] .app,
+    body[data-view="about"] .app {
+      grid-template-columns: 1fr;
+    }
+
+    body[data-view="home"] .sidebar,
+    body[data-view="about"] .sidebar,
+    body[data-view="home"] .topbar,
+    body[data-view="about"] .topbar {
+      display: none;
+    }
+
     .sidebar {
       position: sticky;
       top: 0;
@@ -428,6 +440,11 @@ const html = String.raw`<!doctype html>
       padding: 44px 28px 70px;
     }
 
+    body[data-view="home"] .reader-shell,
+    body[data-view="about"] .reader-shell {
+      padding: 60px 46px 70px;
+    }
+
     .reader {
       width: min(var(--reader-width), 100%);
       margin: 0 auto;
@@ -436,6 +453,23 @@ const html = String.raw`<!doctype html>
       border-radius: 8px;
       background: var(--panel);
       box-shadow: var(--shadow);
+    }
+
+    body[data-view="home"] .reader,
+    body[data-view="about"] .reader {
+      width: min(1120px, 100%);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    body[data-view="home"] .search-row,
+    body[data-view="home"] #toc,
+    body[data-view="home"] .notes-panel,
+    body[data-view="about"] .search-row,
+    body[data-view="about"] #toc {
+      display: none;
     }
 
     .article-meta {
@@ -538,19 +572,19 @@ const html = String.raw`<!doctype html>
     }
 
     .home-title {
-      margin: 0 0 20px;
+      margin: 0 0 22px;
       font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
-      font-size: 42px;
-      line-height: 1.22;
+      font-size: 52px;
+      line-height: 1.15;
       letter-spacing: 0;
     }
 
     .home-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-      gap: 42px;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 64px;
       align-items: center;
-      min-height: min(620px, calc(100vh - 180px));
+      min-height: min(660px, calc(100vh - 150px));
     }
 
     .home-copy {
@@ -558,10 +592,11 @@ const html = String.raw`<!doctype html>
     }
 
     .home-lede {
-      margin: 0 0 28px;
+      max-width: 680px;
+      margin: 0 0 22px;
       color: var(--muted);
-      font-size: 20px;
-      line-height: 1.8;
+      font-size: 21px;
+      line-height: 1.75;
     }
 
     .home-actions {
@@ -575,11 +610,12 @@ const html = String.raw`<!doctype html>
       position: relative;
       display: grid;
       align-content: space-between;
-      min-height: 460px;
-      padding: 30px 28px;
+      min-height: 500px;
+      padding: 34px 30px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--panel-strong);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 92%, var(--accent-soft)), var(--panel-strong));
       color: var(--text);
       text-align: left;
       cursor: pointer;
@@ -612,9 +648,10 @@ const html = String.raw`<!doctype html>
 
     .cover-title {
       position: relative;
-      margin: 56px 0 18px;
+      display: block;
+      margin: 64px 0 18px;
       font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
-      font-size: 31px;
+      font-size: 34px;
       line-height: 1.22;
       font-weight: 900;
       letter-spacing: 0;
@@ -622,6 +659,7 @@ const html = String.raw`<!doctype html>
 
     .cover-subtitle {
       position: relative;
+      display: block;
       color: var(--muted);
       font-size: 15px;
       line-height: 1.7;
@@ -864,6 +902,11 @@ const html = String.raw`<!doctype html>
         padding: 20px 12px 46px;
       }
 
+      body[data-view="home"] .reader-shell,
+      body[data-view="about"] .reader-shell {
+        padding: 24px 16px 46px;
+      }
+
       .reader {
         padding: 30px 20px 42px;
       }
@@ -877,7 +920,7 @@ const html = String.raw`<!doctype html>
       }
 
       .home-title {
-        font-size: 32px;
+        font-size: 34px;
       }
 
       .home-lede {
@@ -887,11 +930,11 @@ const html = String.raw`<!doctype html>
       .home-layout {
         grid-template-columns: 1fr;
         min-height: 0;
-        gap: 26px;
+        gap: 28px;
       }
 
       .book-cover {
-        min-height: 360px;
+        min-height: 330px;
       }
 
       .selection-popup {
@@ -1064,6 +1107,7 @@ const html = String.raw`<!doctype html>
     function setView(view) {
       state.view = view;
       localStorage.setItem("reader.view", view);
+      document.body.dataset.view = view;
       homeButton.classList.toggle("active", view === "home");
       aboutButton.classList.toggle("active", view === "about");
       footerNav.style.display = view === "reader" ? "" : "none";
