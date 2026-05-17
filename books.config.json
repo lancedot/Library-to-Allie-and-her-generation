@@ -1,0 +1,29 @@
+{
+  "libraryTitle": "给中文使用者的 AI 原生工作手册",
+  "output": "index.html",
+  "books": [
+    {
+      "id": "ai-literacy",
+      "title": "给中文使用者的 AI 原生工作手册",
+      "description": "从一线 AI 公司的公开实践出发，重新理解普通人、团队和组织该如何使用 AI。",
+      "sources": [
+        {
+          "part": "开篇",
+          "files": "AI_Literacy_Preface_Ch0.md",
+          "chapterOffset": 0
+        },
+        {
+          "part": "Part I - 全民 AI 素养基础",
+          "files": "AI_Literacy_PartI_Ch*.md",
+          "chapterOffset": 0,
+          "titleExcludes": ["AI 素养与 AI 原生工作基础", "给中文使用者的 AI 原生工作手册"]
+        },
+        {
+          "part": "Part II - AI 原生工作基础",
+          "files": "AI_Literacy_PartII_Ch*.md",
+          "chapterOffset": 7
+        }
+      ]
+    }
+  ]
+}
