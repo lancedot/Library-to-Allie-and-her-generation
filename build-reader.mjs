@@ -545,6 +545,18 @@ const html = String.raw`<!doctype html>
       letter-spacing: 0;
     }
 
+    .home-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+      gap: 42px;
+      align-items: center;
+      min-height: min(620px, calc(100vh - 180px));
+    }
+
+    .home-copy {
+      min-width: 0;
+    }
+
     .home-lede {
       margin: 0 0 28px;
       color: var(--muted);
@@ -559,31 +571,71 @@ const html = String.raw`<!doctype html>
       margin: 24px 0 34px;
     }
 
-    .home-card-grid {
+    .book-cover {
+      position: relative;
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin: 28px 0;
-    }
-
-    .home-card {
-      padding: 16px;
+      align-content: space-between;
+      min-height: 460px;
+      padding: 30px 28px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel-strong);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      overflow: hidden;
     }
 
-    .home-card strong {
-      display: block;
-      margin-bottom: 7px;
+    .book-cover::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .book-cover:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+
+    .cover-kicker {
+      position: relative;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .cover-title {
+      position: relative;
+      margin: 56px 0 18px;
       font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
-      font-size: 16px;
+      font-size: 31px;
+      line-height: 1.22;
+      font-weight: 900;
+      letter-spacing: 0;
     }
 
-    .home-card span {
+    .cover-subtitle {
+      position: relative;
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.55;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .cover-footer {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: end;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
     }
 
     .source-list {
@@ -832,8 +884,14 @@ const html = String.raw`<!doctype html>
         font-size: 18px;
       }
 
-      .home-card-grid {
+      .home-layout {
         grid-template-columns: 1fr;
+        min-height: 0;
+        gap: 26px;
+      }
+
+      .book-cover {
+        min-height: 360px;
       }
 
       .selection-popup {
@@ -1019,24 +1077,32 @@ const html = String.raw`<!doctype html>
       currentTitle.textContent = "首页";
       articleMeta.textContent = "一份面向中文使用者的 AI 素养与 AI 原生工作小书";
       content.innerHTML =
-        '<p class="home-kicker">AI literacy / AI-native work</p>' +
-        '<h1 class="home-title">' + escapeHtml(book.title || library.title || "给中文使用者的 AI 原生工作手册") + '</h1>' +
-        '<p class="home-lede">世界上最厉害的 AI 公司，正在教政府、创业者、组织和普通人如何使用 AI。这本小书不是翻译那些材料，而是在它们的启发之下，按我的理解重新写一套面向中文使用者的 AI 科普和工作手册。</p>' +
-        '<div class="home-actions">' +
-          '<button class="text-button" data-start-reading="true">开始阅读</button>' +
-          '<button class="text-button" data-show-about="true">关于这个项目</button>' +
-        '</div>' +
-        '<div class="home-card-grid">' +
-          '<div class="home-card"><strong>第一部分：AI 素养</strong><span>理解 AI 是什么、擅长什么、不擅长什么，以及普通人应该如何验证和使用它。</span></div>' +
-          '<div class="home-card"><strong>第二部分：AI 原生工作</strong><span>从个人协作走向团队流程、组织治理、Agent 和文化建设。</span></div>' +
-          '<div class="home-card"><strong>不是标准答案</strong><span>这里的判断会继续迭代。它更像一份公开探索笔记，而不是定稿教材。</span></div>' +
-          '<div class="home-card"><strong>面向中文语境</strong><span>参考一线 AI 公司的公开材料，但尽量用中文工作场景重新解释。</span></div>' +
-        '</div>' +
-        '<h2>参考来源</h2>' +
-        '<ul class="source-list">' +
-          '<li><a href="https://openai.com/index/malta-chatgpt-plus-partnership/" target="_blank" rel="noreferrer">OpenAI and Malta partner to bring ChatGPT Plus to all citizens</a></li>' +
-          '<li><a href="https://claude.com/blog/the-founders-playbook" target="_blank" rel="noreferrer">Anthropic: The founder&#39;s playbook</a></li>' +
-        '</ul>';
+        '<div class="home-layout">' +
+          '<div class="home-copy">' +
+            '<p class="home-kicker">AI 科普 / AI 原生工作</p>' +
+            '<h1 class="home-title">受一线 AI 实践启发，写给中文使用者的一本小书</h1>' +
+            '<p class="home-lede">OpenAI、Anthropic 这样的公司，正在用自己的方式教政府、创业者、组织和普通人如何使用 AI。我没办法去参加某个国家的 AI 素养课程，但可以在这些公开信号的启发下，按自己的理解重新写一组尽可能清楚的中文科普文章。</p>' +
+            '<p>这不是翻译，也不是标准答案。它更像一份持续生长的写作实验：通过和 AI 讨论、追问、改写，把“AI 到底是什么、怎么用、怎么保持判断力”这些问题讲给中文读者听。</p>' +
+            '<div class="home-actions">' +
+              '<button class="text-button" data-start-reading="true">开始阅读</button>' +
+              '<button class="text-button" data-show-about="true">关于这个项目</button>' +
+            '</div>' +
+            '<h2>参考与启发</h2>' +
+            '<ul class="source-list">' +
+              '<li><a href="https://openai.com/index/malta-chatgpt-plus-partnership/" target="_blank" rel="noreferrer">OpenAI and Malta partner to bring ChatGPT Plus to all citizens</a></li>' +
+              '<li><a href="https://claude.com/blog/the-founders-playbook" target="_blank" rel="noreferrer">Anthropic: The founder&#39;s playbook</a></li>' +
+              '<li><a href="https://www.socratopia.app/" target="_blank" rel="noreferrer">Socratopia: AI-powered Socratic learning</a></li>' +
+            '</ul>' +
+          '</div>' +
+          '<button class="book-cover" data-start-reading="true" type="button" aria-label="打开这本书">' +
+            '<span class="cover-kicker">Book 01</span>' +
+            '<span>' +
+              '<span class="cover-title">' + escapeHtml(book.title || library.title || "给中文使用者的 AI 原生工作手册") + '</span>' +
+              '<span class="cover-subtitle">AI 科普、工作方法、组织变化，以及普通人如何保持判断力。</span>' +
+            '</span>' +
+            '<span class="cover-footer"><span>' + (book.chapterCount || 0) + ' 篇</span><span>点击阅读</span></span>' +
+          '</button>' +
+        '</div>';
       renderToc();
       renderNotes();
       requestAnimationFrame(updateProgress);
