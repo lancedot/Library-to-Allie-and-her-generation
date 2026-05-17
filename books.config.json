@@ -25,6 +25,25 @@
           "chapterOffset": 7
         }
       ]
+    },
+    {
+      "id": "founders-playbook",
+      "title": "创始人手册：构建 AI 原生创业公司",
+      "description": "译自 Anthropic 的 The Founder's Playbook，关于 AI 原生创业生命周期、创始人角色和 Claude 工具链。",
+      "sources": [
+        {
+          "part": "正文",
+          "files": [
+            "Founders_Playbook_Ch1.zh.md",
+            "Founders_Playbook_Ch2.zh.md",
+            "Founders_Playbook_Ch3.zh.md",
+            "Founders_Playbook_Ch4.zh.md",
+            "Founders_Playbook_Ch5_Resources.zh.md"
+          ],
+          "chapterOffset": 0,
+          "titleExcludes": ["创始人手册：构建 AI 原生创业公司"]
+        }
+      ]
     }
   ]
 }

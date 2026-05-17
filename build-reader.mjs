@@ -178,15 +178,57 @@ const html = String.raw`<!doctype html>
     }
 
     body[data-view="home"] .app,
+    body[data-view="bookstore"] .app,
     body[data-view="about"] .app {
       grid-template-columns: 1fr;
     }
 
     body[data-view="home"] .sidebar,
+    body[data-view="bookstore"] .sidebar,
     body[data-view="about"] .sidebar,
     body[data-view="home"] .topbar,
+    body[data-view="bookstore"] .topbar,
     body[data-view="about"] .topbar {
       display: none;
+    }
+
+    .public-nav {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 42px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 8;
+    }
+
+    body[data-view="home"] .public-nav,
+    body[data-view="bookstore"] .public-nav,
+    body[data-view="about"] .public-nav {
+      display: flex;
+    }
+
+    .public-brand {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .public-nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .public-nav .text-button.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
     }
 
     .sidebar {
@@ -233,7 +275,7 @@ const html = String.raw`<!doctype html>
 
     .site-nav {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
       margin-bottom: 14px;
     }
@@ -441,6 +483,7 @@ const html = String.raw`<!doctype html>
     }
 
     body[data-view="home"] .reader-shell,
+    body[data-view="bookstore"] .reader-shell,
     body[data-view="about"] .reader-shell {
       padding: 60px 46px 70px;
     }
@@ -456,6 +499,7 @@ const html = String.raw`<!doctype html>
     }
 
     body[data-view="home"] .reader,
+    body[data-view="bookstore"] .reader,
     body[data-view="about"] .reader {
       width: min(1120px, 100%);
       padding: 0;
@@ -467,6 +511,9 @@ const html = String.raw`<!doctype html>
     body[data-view="home"] .search-row,
     body[data-view="home"] #toc,
     body[data-view="home"] .notes-panel,
+    body[data-view="bookstore"] .search-row,
+    body[data-view="bookstore"] #toc,
+    body[data-view="bookstore"] .notes-panel,
     body[data-view="about"] .search-row,
     body[data-view="about"] #toc {
       display: none;
@@ -581,8 +628,8 @@ const html = String.raw`<!doctype html>
 
     .home-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 64px;
+      grid-template-columns: 1fr;
+      gap: 36px;
       align-items: center;
       min-height: min(660px, calc(100vh - 150px));
     }
@@ -606,11 +653,33 @@ const html = String.raw`<!doctype html>
       margin: 24px 0 34px;
     }
 
+    .book-shelf {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 18px;
+      align-self: stretch;
+      align-content: center;
+    }
+
+    .bookstore-title {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .bookstore-lede {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
     .book-cover {
       position: relative;
       display: grid;
       align-content: space-between;
-      min-height: 500px;
+      min-height: 330px;
       padding: 34px 30px;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -649,7 +718,7 @@ const html = String.raw`<!doctype html>
     .cover-title {
       position: relative;
       display: block;
-      margin: 64px 0 18px;
+      margin: 46px 0 18px;
       font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
       font-size: 34px;
       line-height: 1.22;
@@ -903,6 +972,7 @@ const html = String.raw`<!doctype html>
       }
 
       body[data-view="home"] .reader-shell,
+      body[data-view="bookstore"] .reader-shell,
       body[data-view="about"] .reader-shell {
         padding: 24px 16px 46px;
       }
@@ -933,8 +1003,26 @@ const html = String.raw`<!doctype html>
         gap: 28px;
       }
 
+      .public-nav {
+        padding: 14px 14px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .public-nav-links {
+        width: 100%;
+      }
+
+      .public-nav .text-button {
+        flex: 1;
+      }
+
+      .book-shelf {
+        grid-template-columns: 1fr;
+      }
+
       .book-cover {
-        min-height: 330px;
+        min-height: 300px;
       }
 
       .selection-popup {
@@ -953,11 +1041,20 @@ const html = String.raw`<!doctype html>
 </head>
 <body>
   <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
+  <nav class="public-nav" aria-label="站点导航">
+    <div class="public-brand">Library to Allie and her generation</div>
+    <div class="public-nav-links">
+      <button class="text-button" id="publicHomeButton" type="button">首页</button>
+      <button class="text-button" id="publicBookstoreButton" type="button">书城</button>
+      <button class="text-button" id="publicAboutButton" type="button">关于</button>
+    </div>
+  </nav>
   <div class="app">
     <aside class="sidebar" id="sidebar">
       <h1 class="brand" id="libraryTitle">__LIBRARY_TITLE__</h1>
       <div class="site-nav">
         <button class="text-button" id="homeButton" type="button">首页</button>
+        <button class="text-button" id="bookstoreButton" type="button">书城</button>
         <button class="text-button" id="aboutButton" type="button">关于</button>
       </div>
       <div class="book-picker" id="bookPicker">
@@ -1035,7 +1132,11 @@ const html = String.raw`<!doctype html>
     const content = document.getElementById("content");
     const search = document.getElementById("search");
     const libraryTitle = document.getElementById("libraryTitle");
+    const publicHomeButton = document.getElementById("publicHomeButton");
+    const publicBookstoreButton = document.getElementById("publicBookstoreButton");
+    const publicAboutButton = document.getElementById("publicAboutButton");
     const homeButton = document.getElementById("homeButton");
+    const bookstoreButton = document.getElementById("bookstoreButton");
     const aboutButton = document.getElementById("aboutButton");
     const bookPicker = document.getElementById("bookPicker");
     const bookSelect = document.getElementById("bookSelect");
@@ -1109,44 +1210,74 @@ const html = String.raw`<!doctype html>
       localStorage.setItem("reader.view", view);
       document.body.dataset.view = view;
       homeButton.classList.toggle("active", view === "home");
+      bookstoreButton.classList.toggle("active", view === "bookstore");
       aboutButton.classList.toggle("active", view === "about");
+      publicHomeButton.classList.toggle("active", view === "home");
+      publicBookstoreButton.classList.toggle("active", view === "bookstore");
+      publicAboutButton.classList.toggle("active", view === "about");
       footerNav.style.display = view === "reader" ? "" : "none";
       document.body.classList.remove("menu-open");
     }
 
+    function renderBookCovers() {
+      const books = allBooks();
+      return books.map((item, index) =>
+        '<button class="book-cover" data-start-book="' + escapeHtml(item.id) + '" type="button" aria-label="打开' + escapeHtml(item.title) + '">' +
+          '<span class="cover-kicker">Book ' + String(index + 1).padStart(2, "0") + '</span>' +
+          '<span>' +
+            '<span class="cover-title">' + escapeHtml(item.title) + '</span>' +
+            '<span class="cover-subtitle">' + escapeHtml(item.description || "点击进入阅读。") + '</span>' +
+          '</span>' +
+          '<span class="cover-footer"><span>' + (item.chapterCount || 0) + ' 篇</span><span>点击阅读</span></span>' +
+        '</button>'
+      ).join("");
+    }
+
     function renderHome() {
-      const book = activeBook();
       setView("home");
       renderBookPicker();
       currentTitle.textContent = "首页";
-      articleMeta.textContent = "一份面向中文使用者的 AI 素养与 AI 原生工作小书";
+      articleMeta.textContent = "给 Allie 和她这一代人的 AI 学习笔记";
       content.innerHTML =
         '<div class="home-layout">' +
           '<div class="home-copy">' +
-            '<p class="home-kicker">AI 科普 / AI 原生工作</p>' +
-            '<h1 class="home-title">受一线 AI 实践启发，写给中文使用者的一本小书</h1>' +
-            '<p class="home-lede">OpenAI、Anthropic 这样的公司，正在用自己的方式教政府、创业者、组织和普通人如何使用 AI。我没办法去参加某个国家的 AI 素养课程，但可以在这些公开信号的启发下，按自己的理解重新写一组尽可能清楚的中文科普文章。</p>' +
-            '<p>这不是翻译，也不是标准答案。它更像一份持续生长的写作实验：通过和 AI 讨论、追问、改写，把“AI 到底是什么、怎么用、怎么保持判断力”这些问题讲给中文读者听。</p>' +
+            '<p class="home-kicker">Library to Allie and her generation</p>' +
+            '<h1 class="home-title">给 Allie 和她这一代人的 AI 学习笔记</h1>' +
+            '<p class="home-lede">这个网站是给我的女儿 Allie，以及和她同一代正在长大的孩子看的。等他们真正进入世界时，AI 很可能已经像搜索、手机和互联网一样普通。</p>' +
+            '<p>这里会放我对 AI 的学习、思考和写作实验：有些是面向小学生也能慢慢理解的 AI 科普，有些是我受到一线 AI 公司公开材料启发后的整理，也有一些是我和 AI 反复讨论、追问、改写后留下来的文章。</p>' +
             '<div class="home-actions">' +
-              '<button class="text-button" data-start-reading="true">开始阅读</button>' +
-              '<button class="text-button" data-show-about="true">关于这个项目</button>' +
+              '<button class="text-button" data-show-bookstore="true">进入书城</button>' +
+              '<button class="text-button" data-show-about="true">关于这个网站</button>' +
             '</div>' +
+          '</div>' +
+          '<div>' +
+            '<h2 class="bookstore-title">书城</h2>' +
+            '<p class="bookstore-lede">目前收录两本：一本是我的 AI 科普与 AI 原生工作手册，一本是 Anthropic Founder&#39;s Playbook 的中文翻译稿。</p>' +
+            '<div class="book-shelf">' + renderBookCovers() + '</div>' +
+          '</div>' +
+          '<div class="home-copy">' +
             '<h2>参考与启发</h2>' +
             '<ul class="source-list">' +
               '<li><a href="https://openai.com/index/malta-chatgpt-plus-partnership/" target="_blank" rel="noreferrer">OpenAI and Malta partner to bring ChatGPT Plus to all citizens</a></li>' +
-              '<li><a href="https://claude.com/blog/the-founders-playbook" target="_blank" rel="noreferrer">Anthropic: The founder&#39;s playbook</a></li>' +
+              '<li><button class="text-button" data-start-book="founders-playbook" type="button">Anthropic: The founder&#39;s playbook（AI 翻译稿 / Book 02）</button></li>' +
               '<li><a href="https://www.socratopia.app/" target="_blank" rel="noreferrer">Socratopia: AI-powered Socratic learning</a></li>' +
             '</ul>' +
           '</div>' +
-          '<button class="book-cover" data-start-reading="true" type="button" aria-label="打开这本书">' +
-            '<span class="cover-kicker">Book 01</span>' +
-            '<span>' +
-              '<span class="cover-title">' + escapeHtml(book.title || library.title || "给中文使用者的 AI 原生工作手册") + '</span>' +
-              '<span class="cover-subtitle">AI 科普、工作方法、组织变化，以及普通人如何保持判断力。</span>' +
-            '</span>' +
-            '<span class="cover-footer"><span>' + (book.chapterCount || 0) + ' 篇</span><span>点击阅读</span></span>' +
-          '</button>' +
         '</div>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderBookstore() {
+      setView("bookstore");
+      renderBookPicker();
+      currentTitle.textContent = "书城";
+      articleMeta.textContent = "当前收录的书";
+      content.innerHTML =
+        '<h1>书城</h1>' +
+        '<p class="bookstore-lede">这里放我正在整理和写作的书。它们有些是原创科普，有些是学习过程中的翻译、摘录和再理解。</p>' +
+        '<div class="book-shelf">' + renderBookCovers() + '</div>';
       renderToc();
       renderNotes();
       requestAnimationFrame(updateProgress);
@@ -1163,8 +1294,6 @@ const html = String.raw`<!doctype html>
         '<p>我会把原始材料、自己的理解和中文语境下的延展尽量分清楚。这里的观点不一定都对，但它们应该是可讨论、可实践、也可被修正的。</p>' +
         '<h2>为什么叫“AI 原生工作”</h2>' +
         '<p>因为 AI 不只是提高某个动作的效率。更深的变化在于：如果 AI 能力已经存在，我们是不是应该重新设计任务、流程、角色和组织协作方式。</p>' +
-        '<h2>这个站点如何更新</h2>' +
-        '<p>正文来自本仓库里的 Markdown 文件，由一个本地生成器打包成静态网页。这样它可以部署在 Vercel 上，也可以随着内容逐章修改。</p>' +
         '<div class="home-actions"><button class="text-button" data-start-reading="true">从前言开始</button></div>';
       renderToc();
       renderNotes();
@@ -1174,6 +1303,8 @@ const html = String.raw`<!doctype html>
     function renderView() {
       if (state.view === "about") {
         renderAbout();
+      } else if (state.view === "bookstore") {
+        renderBookstore();
       } else if (state.view === "reader") {
         renderArticle();
       } else {
@@ -1552,6 +1683,16 @@ const html = String.raw`<!doctype html>
     });
 
     content.addEventListener("click", (event) => {
+      const bookButton = event.target.closest("[data-start-book]");
+      if (bookButton) {
+        state.activeBookId = bookButton.dataset.startBook;
+        state.activeId = chapters()[0]?.id;
+        localStorage.setItem("reader.activeBookId", state.activeBookId);
+        localStorage.setItem("reader.activeId", state.activeId || "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderArticle();
+        return;
+      }
       const startButton = event.target.closest("[data-start-reading]");
       if (startButton) {
         state.activeId = chapters()[0]?.id;
@@ -1563,6 +1704,12 @@ const html = String.raw`<!doctype html>
       if (aboutTrigger) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         renderAbout();
+        return;
+      }
+      const bookstoreTrigger = event.target.closest("[data-show-bookstore]");
+      if (bookstoreTrigger) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderBookstore();
         return;
       }
       const highlight = event.target.closest("[data-note-id]");
@@ -1648,7 +1795,27 @@ const html = String.raw`<!doctype html>
       renderHome();
     });
 
+    bookstoreButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderBookstore();
+    });
+
     aboutButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderAbout();
+    });
+
+    publicHomeButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderHome();
+    });
+
+    publicBookstoreButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderBookstore();
+    });
+
+    publicAboutButton.addEventListener("click", () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
       renderAbout();
     });
