@@ -93,6 +93,7 @@ function parseMeta(book, source, fileName, sourceIndex, fileIndex) {
 const config = readConfig();
 const library = {
   title: config.libraryTitle ?? "本地阅读器",
+  authorTools: config.authorTools === true,
   books: (config.books ?? []).map((book, bookIndex) => {
     const normalizedBook = {
       id: book.id ?? `book-${bookIndex + 1}`,
@@ -216,6 +217,23 @@ const html = String.raw`<!doctype html>
       color: var(--muted);
       font-size: 13px;
       line-height: 1.45;
+    }
+
+    .site-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .site-nav .text-button {
+      width: 100%;
+    }
+
+    .site-nav .active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
     }
 
     .import-tools {
@@ -512,6 +530,80 @@ const html = String.raw`<!doctype html>
       border-radius: 3px;
     }
 
+    .home-kicker {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .home-title {
+      margin: 0 0 20px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-size: 42px;
+      line-height: 1.22;
+      letter-spacing: 0;
+    }
+
+    .home-lede {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1.8;
+    }
+
+    .home-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 24px 0 34px;
+    }
+
+    .home-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 28px 0;
+    }
+
+    .home-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+    }
+
+    .home-card strong {
+      display: block;
+      margin-bottom: 7px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-size: 16px;
+    }
+
+    .home-card span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .source-list a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .source-list a:hover {
+      text-decoration: underline;
+    }
+
     .footer-nav {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -557,18 +649,61 @@ const html = String.raw`<!doctype html>
     .selection-popup {
       position: fixed;
       z-index: 30;
-      width: min(320px, calc(100vw - 24px));
-      padding: 10px;
+      width: min(360px, calc(100vw - 24px));
+      padding: 12px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel-strong);
       box-shadow: var(--shadow);
       display: none;
-      gap: 8px;
+      gap: 10px;
     }
 
     .selection-popup.open {
       display: grid;
+    }
+
+    .selection-popup-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .selection-popup-title {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .popup-close {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .popup-close:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .selected-preview {
+      max-height: 72px;
+      overflow: auto;
+      padding: 9px 10px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     .note-input {
@@ -582,6 +717,19 @@ const html = String.raw`<!doctype html>
       color: var(--text);
       font: inherit;
       line-height: 1.5;
+    }
+
+    .popup-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .text-button[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      color: var(--muted);
+      border-color: var(--line);
     }
 
     .notes-panel {
@@ -676,6 +824,26 @@ const html = String.raw`<!doctype html>
         font-size: 22px;
       }
 
+      .home-title {
+        font-size: 32px;
+      }
+
+      .home-lede {
+        font-size: 18px;
+      }
+
+      .home-card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .selection-popup {
+        left: 12px !important;
+        right: 12px;
+        bottom: 12px;
+        top: auto !important;
+        width: auto;
+      }
+
       .footer-nav {
         grid-template-columns: 1fr;
       }
@@ -687,11 +855,15 @@ const html = String.raw`<!doctype html>
   <div class="app">
     <aside class="sidebar" id="sidebar">
       <h1 class="brand" id="libraryTitle">__LIBRARY_TITLE__</h1>
-      <div class="book-picker">
+      <div class="site-nav">
+        <button class="text-button" id="homeButton" type="button">首页</button>
+        <button class="text-button" id="aboutButton" type="button">关于</button>
+      </div>
+      <div class="book-picker" id="bookPicker">
         <select class="book-select" id="bookSelect" aria-label="选择书籍"></select>
         <div class="book-description" id="bookDescription"></div>
       </div>
-      <div class="import-tools">
+      <div class="import-tools" id="importTools">
         <button class="text-button" id="importButton" type="button">导入 MD 成书</button>
         <input class="hidden-input" id="fileInput" type="file" accept=".md,text/markdown,text/plain" multiple>
         <div class="drop-zone" id="dropZone">拖一批 Markdown 到这里</div>
@@ -721,7 +893,7 @@ const html = String.raw`<!doctype html>
           <div class="article-meta" id="articleMeta"></div>
           <div class="content" id="content"></div>
         </article>
-        <div class="footer-nav">
+        <div class="footer-nav" id="footerNav">
           <button class="nav-card" id="prevButton"></button>
           <button class="nav-card" id="nextButton"></button>
         </div>
@@ -729,8 +901,16 @@ const html = String.raw`<!doctype html>
     </main>
   </div>
   <div class="selection-popup" id="selectionPopup">
+    <div class="selection-popup-head">
+      <p class="selection-popup-title">添加批注</p>
+      <button class="popup-close" id="cancelNoteButton" type="button" aria-label="取消批注">×</button>
+    </div>
+    <div class="selected-preview" id="selectedPreview"></div>
     <textarea class="note-input" id="noteInput" placeholder="写下这句话旁边的想法"></textarea>
-    <button class="text-button" id="saveNoteButton" type="button">保存批注</button>
+    <div class="popup-actions">
+      <button class="text-button" id="cancelNoteTextButton" type="button">取消</button>
+      <button class="text-button" id="saveNoteButton" type="button" disabled>保存</button>
+    </div>
   </div>
 
   <script id="library-data" type="application/json">__LIBRARY_DATA__</script>
@@ -744,6 +924,7 @@ const html = String.raw`<!doctype html>
     const state = {
       activeBookId: localStorage.getItem("reader.activeBookId") || allBooks()[0]?.id,
       activeId: localStorage.getItem("reader.activeId"),
+      view: localStorage.getItem("reader.view") || "home",
       query: "",
       fontSize: Number(localStorage.getItem("reader.fontSize") || 19),
       theme: localStorage.getItem("reader.theme") || "light",
@@ -753,17 +934,25 @@ const html = String.raw`<!doctype html>
     const content = document.getElementById("content");
     const search = document.getElementById("search");
     const libraryTitle = document.getElementById("libraryTitle");
+    const homeButton = document.getElementById("homeButton");
+    const aboutButton = document.getElementById("aboutButton");
+    const bookPicker = document.getElementById("bookPicker");
     const bookSelect = document.getElementById("bookSelect");
     const bookDescription = document.getElementById("bookDescription");
+    const importTools = document.getElementById("importTools");
     const importButton = document.getElementById("importButton");
     const fileInput = document.getElementById("fileInput");
     const dropZone = document.getElementById("dropZone");
     const noteList = document.getElementById("noteList");
     const selectionPopup = document.getElementById("selectionPopup");
+    const selectedPreview = document.getElementById("selectedPreview");
     const noteInput = document.getElementById("noteInput");
+    const cancelNoteButton = document.getElementById("cancelNoteButton");
+    const cancelNoteTextButton = document.getElementById("cancelNoteTextButton");
     const saveNoteButton = document.getElementById("saveNoteButton");
     const currentTitle = document.getElementById("currentTitle");
     const articleMeta = document.getElementById("articleMeta");
+    const footerNav = document.getElementById("footerNav");
     const prevButton = document.getElementById("prevButton");
     const nextButton = document.getElementById("nextButton");
     const progress = document.getElementById("progress");
@@ -771,6 +960,7 @@ const html = String.raw`<!doctype html>
     document.documentElement.dataset.theme = state.theme;
     document.documentElement.style.setProperty("--font-size", state.fontSize + "px");
     libraryTitle.textContent = library.title || "本地阅读器";
+    importTools.style.display = library.authorTools ? "" : "none";
 
     function loadJson(key, fallback) {
       try {
@@ -803,6 +993,7 @@ const html = String.raw`<!doctype html>
 
     function renderBookPicker() {
       const books = allBooks();
+      bookPicker.style.display = books.length > 1 || library.authorTools ? "" : "none";
       bookSelect.innerHTML = books.map((book) =>
         '<option value="' + escapeHtml(book.id) + '">' + escapeHtml(book.title) + '</option>'
       ).join("");
@@ -810,6 +1001,74 @@ const html = String.raw`<!doctype html>
       const book = activeBook();
       const countText = (book.chapterCount || 0) + " 章 · " + (Math.round((book.wordCount || 0) / 100) / 10) + " 千字";
       bookDescription.textContent = [book.description, countText].filter(Boolean).join(" / ");
+    }
+
+    function setView(view) {
+      state.view = view;
+      localStorage.setItem("reader.view", view);
+      homeButton.classList.toggle("active", view === "home");
+      aboutButton.classList.toggle("active", view === "about");
+      footerNav.style.display = view === "reader" ? "" : "none";
+      document.body.classList.remove("menu-open");
+    }
+
+    function renderHome() {
+      const book = activeBook();
+      setView("home");
+      renderBookPicker();
+      currentTitle.textContent = "首页";
+      articleMeta.textContent = "一份面向中文使用者的 AI 素养与 AI 原生工作小书";
+      content.innerHTML =
+        '<p class="home-kicker">AI literacy / AI-native work</p>' +
+        '<h1 class="home-title">' + escapeHtml(book.title || library.title || "给中文使用者的 AI 原生工作手册") + '</h1>' +
+        '<p class="home-lede">世界上最厉害的 AI 公司，正在教政府、创业者、组织和普通人如何使用 AI。这本小书不是翻译那些材料，而是在它们的启发之下，按我的理解重新写一套面向中文使用者的 AI 科普和工作手册。</p>' +
+        '<div class="home-actions">' +
+          '<button class="text-button" data-start-reading="true">开始阅读</button>' +
+          '<button class="text-button" data-show-about="true">关于这个项目</button>' +
+        '</div>' +
+        '<div class="home-card-grid">' +
+          '<div class="home-card"><strong>第一部分：AI 素养</strong><span>理解 AI 是什么、擅长什么、不擅长什么，以及普通人应该如何验证和使用它。</span></div>' +
+          '<div class="home-card"><strong>第二部分：AI 原生工作</strong><span>从个人协作走向团队流程、组织治理、Agent 和文化建设。</span></div>' +
+          '<div class="home-card"><strong>不是标准答案</strong><span>这里的判断会继续迭代。它更像一份公开探索笔记，而不是定稿教材。</span></div>' +
+          '<div class="home-card"><strong>面向中文语境</strong><span>参考一线 AI 公司的公开材料，但尽量用中文工作场景重新解释。</span></div>' +
+        '</div>' +
+        '<h2>参考来源</h2>' +
+        '<ul class="source-list">' +
+          '<li><a href="https://openai.com/index/malta-chatgpt-plus-partnership/" target="_blank" rel="noreferrer">OpenAI and Malta partner to bring ChatGPT Plus to all citizens</a></li>' +
+          '<li><a href="https://claude.com/blog/the-founders-playbook" target="_blank" rel="noreferrer">Anthropic: The founder&#39;s playbook</a></li>' +
+        '</ul>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderAbout() {
+      setView("about");
+      renderBookPicker();
+      currentTitle.textContent = "关于";
+      articleMeta.textContent = "项目说明";
+      content.innerHTML =
+        '<h1>关于这个项目</h1>' +
+        '<p>这个站点不是一个泛泛的 AI 工具导航，也不是一份追热点的教程。它想做的是：受 OpenAI、Anthropic 等一线 AI 公司公开实践的启发，重新写一份更适合中文使用者阅读和行动的 AI 科普与 AI 原生工作手册。</p>' +
+        '<p>我会把原始材料、自己的理解和中文语境下的延展尽量分清楚。这里的观点不一定都对，但它们应该是可讨论、可实践、也可被修正的。</p>' +
+        '<h2>为什么叫“AI 原生工作”</h2>' +
+        '<p>因为 AI 不只是提高某个动作的效率。更深的变化在于：如果 AI 能力已经存在，我们是不是应该重新设计任务、流程、角色和组织协作方式。</p>' +
+        '<h2>这个站点如何更新</h2>' +
+        '<p>正文来自本仓库里的 Markdown 文件，由一个本地生成器打包成静态网页。这样它可以部署在 Vercel 上，也可以随着内容逐章修改。</p>' +
+        '<div class="home-actions"><button class="text-button" data-start-reading="true">从前言开始</button></div>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderView() {
+      if (state.view === "about") {
+        renderAbout();
+      } else if (state.view === "reader") {
+        renderArticle();
+      } else {
+        renderHome();
+      }
     }
 
     function chapterNumberText(chapter) {
@@ -993,6 +1252,7 @@ const html = String.raw`<!doctype html>
       const bookChapters = chapters();
       const chapter = bookChapters.find((item) => item.id === state.activeId) || bookChapters[0];
       if (!chapter) return;
+      setView("reader");
       state.activeId = chapter.id;
       state.activeBookId = activeBook().id;
       localStorage.setItem("reader.activeBookId", state.activeBookId);
@@ -1076,13 +1336,22 @@ const html = String.raw`<!doctype html>
       selectionPopup.classList.remove("open");
       selectedTextForNote = "";
       noteInput.value = "";
+      selectedPreview.textContent = "";
+      saveNoteButton.disabled = true;
     }
 
     function showSelectionPopup(range, selectedText) {
       selectedTextForNote = selectedText;
+      noteInput.value = "";
+      selectedPreview.textContent = selectedText.length > 120 ? selectedText.slice(0, 120) + "..." : selectedText;
+      saveNoteButton.disabled = true;
       const rect = range.getBoundingClientRect();
-      selectionPopup.style.left = Math.min(window.innerWidth - 332, Math.max(12, rect.left)) + "px";
-      selectionPopup.style.top = Math.min(window.innerHeight - 150, Math.max(12, rect.bottom + 8)) + "px";
+      const popupWidth = Math.min(360, window.innerWidth - 24);
+      const left = Math.min(window.innerWidth - popupWidth - 12, Math.max(12, rect.left));
+      const bottomTop = rect.bottom + 10;
+      const top = bottomTop > window.innerHeight - 230 ? Math.max(12, rect.top - 230) : bottomTop;
+      selectionPopup.style.left = left + "px";
+      selectionPopup.style.top = top + "px";
       selectionPopup.classList.add("open");
       noteInput.focus();
     }
@@ -1158,6 +1427,7 @@ const html = String.raw`<!doctype html>
     });
 
     content.addEventListener("mouseup", () => {
+      if (state.view !== "reader") return;
       const selection = window.getSelection();
       const selectedText = selection ? selection.toString().trim() : "";
       if (!selection || !selectedText || selectedText.length < 2) return;
@@ -1165,7 +1435,26 @@ const html = String.raw`<!doctype html>
       showSelectionPopup(selection.getRangeAt(0), selectedText);
     });
 
+    content.addEventListener("mousedown", (event) => {
+      if (!selectionPopup.classList.contains("open")) return;
+      if (event.target.closest("[data-note-id]")) return;
+      hideSelectionPopup();
+    });
+
     content.addEventListener("click", (event) => {
+      const startButton = event.target.closest("[data-start-reading]");
+      if (startButton) {
+        state.activeId = chapters()[0]?.id;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderArticle();
+        return;
+      }
+      const aboutTrigger = event.target.closest("[data-show-about]");
+      if (aboutTrigger) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderAbout();
+        return;
+      }
       const highlight = event.target.closest("[data-note-id]");
       if (!highlight) return;
       const note = notes.find((item) => item.id === highlight.dataset.noteId);
@@ -1174,14 +1463,19 @@ const html = String.raw`<!doctype html>
 
     saveNoteButton.addEventListener("click", () => {
       const chapter = activeChapter();
-      if (!chapter || !selectedTextForNote) return;
+      const noteText = noteInput.value.trim();
+      if (!chapter || !selectedTextForNote || !noteText) {
+        hideSelectionPopup();
+        window.getSelection()?.removeAllRanges();
+        return;
+      }
       const note = {
         id: "note-" + Date.now(),
         bookId: activeBook().id,
         chapterId: chapter.id,
         chapterTitle: chapter.title,
         selectedText: selectedTextForNote,
-        noteText: noteInput.value.trim(),
+        noteText,
         createdAt: Date.now(),
       };
       notes.push(note);
@@ -1190,6 +1484,32 @@ const html = String.raw`<!doctype html>
       hideSelectionPopup();
       window.getSelection()?.removeAllRanges();
       renderArticle();
+    });
+
+    noteInput.addEventListener("input", () => {
+      saveNoteButton.disabled = !noteInput.value.trim();
+    });
+
+    cancelNoteButton.addEventListener("click", () => {
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+    });
+
+    cancelNoteTextButton.addEventListener("click", () => {
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+    });
+
+    selectionPopup.addEventListener("mousedown", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("mousedown", (event) => {
+      if (!selectionPopup.classList.contains("open")) return;
+      if (selectionPopup.contains(event.target)) return;
+      if (content.contains(event.target)) return;
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
     });
 
     noteList.addEventListener("click", (event) => {
@@ -1213,6 +1533,16 @@ const html = String.raw`<!doctype html>
       renderArticle();
     });
 
+    homeButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderHome();
+    });
+
+    aboutButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderAbout();
+    });
+
     importButton.addEventListener("click", () => fileInput.click());
     fileInput.addEventListener("change", () => importMarkdownFiles(fileInput.files));
     dropZone.addEventListener("dragover", (event) => {
@@ -1232,7 +1562,7 @@ const html = String.raw`<!doctype html>
       localStorage.setItem("reader.activeBookId", state.activeBookId);
       localStorage.setItem("reader.activeId", state.activeId || "");
       window.scrollTo({ top: 0, behavior: "smooth" });
-      renderArticle();
+      renderView();
     });
 
     document.getElementById("increaseFont").addEventListener("click", () => {
@@ -1267,7 +1597,10 @@ const html = String.raw`<!doctype html>
       if (event.key === "Escape") hideSelectionPopup();
     });
 
-    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("scroll", () => {
+      updateProgress();
+      if (selectionPopup.classList.contains("open")) hideSelectionPopup();
+    }, { passive: true });
     window.addEventListener("resize", updateProgress);
 
     document.getElementById("themeButton").textContent = state.theme === "dark" ? "浅色" : "深色";
@@ -1275,7 +1608,7 @@ const html = String.raw`<!doctype html>
       state.activeId = chapters()[0]?.id;
     }
     renderBookPicker();
-    renderArticle();
+    renderView();
   </script>
 </body>
 </html>`;

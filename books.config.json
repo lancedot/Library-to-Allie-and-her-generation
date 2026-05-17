@@ -1,6 +1,7 @@
 {
   "libraryTitle": "给中文使用者的 AI 原生工作手册",
   "output": "index.html",
+  "authorTools": false,
   "books": [
     {
       "id": "ai-literacy",
