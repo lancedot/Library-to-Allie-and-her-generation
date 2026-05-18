@@ -57,6 +57,9 @@ function chineseNumber(value) {
 function sourceFiles(source) {
   const allFiles = fs.readdirSync(cwd).filter((name) => name.toLowerCase().endsWith(".md"));
   const patterns = Array.isArray(source.files) ? source.files : [source.files];
+  if (patterns.every((pattern) => pattern && !pattern.includes("*") && !pattern.includes("?"))) {
+    return patterns.filter((pattern) => fs.existsSync(path.join(cwd, pattern)));
+  }
   const matched = new Set();
 
   for (const pattern of patterns) {

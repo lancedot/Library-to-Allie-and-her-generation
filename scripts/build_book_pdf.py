@@ -21,6 +21,12 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 DOWNLOAD_DIR = ROOT / "downloads"
 DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OUT_FILE = DOWNLOAD_DIR / "ai-native-work-handbook.pdf"
+PAGE_BG = colors.HexColor("#F7F5EF")
+TEXT = colors.HexColor("#24211B")
+MUTED = colors.HexColor("#746D60")
+LINE = colors.HexColor("#DED7C8")
+ACCENT = colors.HexColor("#206A5D")
+ACCENT_SOFT = colors.HexColor("#E3F1EB")
 
 
 def register_fonts() -> tuple[str, str]:
@@ -66,6 +72,8 @@ def source_files(source: dict) -> list[str]:
     patterns = source.get("files")
     if not isinstance(patterns, list):
         patterns = [patterns]
+    if all(pattern and "*" not in pattern and "?" not in pattern for pattern in patterns):
+        return [pattern for pattern in patterns if (ROOT / pattern).exists()]
 
     matched: set[str] = set()
     for pattern in patterns:
@@ -161,7 +169,7 @@ styles.add(
         fontSize=30,
         leading=42,
         alignment=TA_CENTER,
-        textColor=colors.HexColor("#25221D"),
+        textColor=TEXT,
         wordWrap="CJK",
     )
 )
@@ -170,10 +178,10 @@ styles.add(
         "CoverBody",
         parent=styles["Normal"],
         fontName=FONT,
-        fontSize=12,
-        leading=22,
+        fontSize=13,
+        leading=24,
         alignment=TA_CENTER,
-        textColor=colors.HexColor("#625B50"),
+        textColor=MUTED,
         wordWrap="CJK",
     )
 )
@@ -182,9 +190,9 @@ styles.add(
         "ChapterKicker",
         parent=styles["Normal"],
         fontName=FONT_BOLD,
-        fontSize=9,
-        leading=14,
-        textColor=colors.HexColor("#206A5D"),
+        fontSize=10.5,
+        leading=16,
+        textColor=ACCENT,
         wordWrap="CJK",
     )
 )
@@ -193,11 +201,11 @@ styles.add(
         "BookH1",
         parent=styles["Heading1"],
         fontName=FONT_BOLD,
-        fontSize=19,
-        leading=28,
+        fontSize=24,
+        leading=34,
         spaceBefore=0,
         spaceAfter=10,
-        textColor=colors.HexColor("#1F1D19"),
+        textColor=TEXT,
         wordWrap="CJK",
     )
 )
@@ -206,11 +214,11 @@ styles.add(
         "BookH2",
         parent=styles["Heading2"],
         fontName=FONT_BOLD,
-        fontSize=15,
-        leading=23,
-        spaceBefore=12,
-        spaceAfter=7,
-        textColor=colors.HexColor("#1F1D19"),
+        fontSize=18,
+        leading=29,
+        spaceBefore=17,
+        spaceAfter=9,
+        textColor=TEXT,
         wordWrap="CJK",
     )
 )
@@ -219,11 +227,11 @@ styles.add(
         "BookH3",
         parent=styles["Heading3"],
         fontName=FONT_BOLD,
-        fontSize=12,
-        leading=20,
-        spaceBefore=9,
-        spaceAfter=5,
-        textColor=colors.HexColor("#206A5D"),
+        fontSize=15,
+        leading=25,
+        spaceBefore=13,
+        spaceAfter=7,
+        textColor=ACCENT,
         wordWrap="CJK",
     )
 )
@@ -232,10 +240,10 @@ styles.add(
         "BookBody",
         parent=styles["BodyText"],
         fontName=FONT,
-        fontSize=10.5,
-        leading=19,
-        firstLineIndent=18,
-        spaceAfter=5,
+        fontSize=13,
+        leading=24,
+        firstLineIndent=22,
+        spaceAfter=7,
         alignment=TA_JUSTIFY,
         wordWrap="CJK",
     )
@@ -254,14 +262,14 @@ styles.add(
         "BookQuote",
         parent=styles["BodyText"],
         fontName=FONT,
-        fontSize=10,
-        leading=17,
-        leftIndent=12,
-        rightIndent=8,
-        spaceBefore=6,
-        spaceAfter=8,
+        fontSize=12.5,
+        leading=23,
+        leftIndent=14,
+        rightIndent=10,
+        spaceBefore=8,
+        spaceAfter=10,
         textColor=colors.HexColor("#3C443F"),
-        backColor=colors.HexColor("#EEF6F2"),
+        backColor=ACCENT_SOFT,
         borderColor=colors.HexColor("#B8D8CC"),
         borderWidth=0.6,
         borderPadding=6,
@@ -275,7 +283,7 @@ styles.add(
         fontName=FONT_BOLD,
         fontSize=20,
         leading=30,
-        textColor=colors.HexColor("#206A5D"),
+        textColor=ACCENT,
         wordWrap="CJK",
     )
 )
@@ -284,11 +292,11 @@ styles.add(
         "TocPart",
         parent=styles["Heading2"],
         fontName=FONT_BOLD,
-        fontSize=11,
-        leading=18,
-        spaceBefore=10,
-        spaceAfter=4,
-        textColor=colors.HexColor("#6D675F"),
+        fontSize=12,
+        leading=20,
+        spaceBefore=11,
+        spaceAfter=5,
+        textColor=MUTED,
         wordWrap="CJK",
     )
 )
@@ -297,9 +305,9 @@ styles.add(
         "TocRow",
         parent=styles["Normal"],
         fontName=FONT,
-        fontSize=9.5,
-        leading=15,
-        textColor=colors.HexColor("#25221D"),
+        fontSize=11,
+        leading=17,
+        textColor=TEXT,
         wordWrap="CJK",
     )
 )
@@ -362,7 +370,7 @@ def flush_table(story: list, rows: list[str], width: float) -> None:
         TableStyle(
             [
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#D8D1C4")),
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EDF3EF") if has_header else colors.white),
+                ("BACKGROUND", (0, 0), (-1, 0), ACCENT_SOFT if has_header else PAGE_BG),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 5),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5),
@@ -397,7 +405,7 @@ def markdown_to_flowables(markdown: str, width: float) -> list:
 
         if re.match(r"^---+$", line):
             flush_all()
-            story.append(HRFlowable(width="100%", color=colors.HexColor("#DED7C8"), thickness=0.6, spaceBefore=8, spaceAfter=8))
+            story.append(HRFlowable(width="100%", color=LINE, thickness=0.6, spaceBefore=10, spaceAfter=10))
             continue
 
         heading = re.match(r"^(#{1,4})\s+(.+)$", line)
@@ -438,8 +446,10 @@ def markdown_to_flowables(markdown: str, width: float) -> list:
     return story
 
 
-def draw_page_number(canvas, doc):
+def draw_page(canvas, doc):
     canvas.saveState()
+    canvas.setFillColor(PAGE_BG)
+    canvas.rect(0, 0, A4[0], A4[1], fill=1, stroke=0)
     canvas.setFont(FONT, 8)
     canvas.setFillColor(colors.HexColor("#8A8276"))
     canvas.drawCentredString(A4[0] / 2, 10 * mm, str(doc.page))
@@ -451,10 +461,10 @@ def build_pdf() -> None:
     doc = SimpleDocTemplate(
         str(OUT_FILE),
         pagesize=A4,
-        rightMargin=18 * mm,
-        leftMargin=18 * mm,
-        topMargin=18 * mm,
-        bottomMargin=18 * mm,
+        rightMargin=17 * mm,
+        leftMargin=17 * mm,
+        topMargin=17 * mm,
+        bottomMargin=17 * mm,
         title=book["title"],
         author=book.get("author", "Alex Liu"),
     )
@@ -469,8 +479,6 @@ def build_pdf() -> None:
     story.append(Paragraph(html.escape(book.get("author", "Alex Liu")), styles["CoverBody"]))
     story.append(Spacer(1, 10 * mm))
     story.append(Paragraph(html.escape(book.get("description", "")), styles["CoverBody"]))
-    story.append(Spacer(1, 7 * mm))
-    story.append(Paragraph("本 PDF 由项目内 Markdown 章节自动生成，保留首本书正文内容，适合离线阅读和分发。", styles["CoverBody"]))
     story.append(PageBreak())
 
     story.append(Paragraph("目录", styles["TocTitle"]))
@@ -490,7 +498,7 @@ def build_pdf() -> None:
         story.append(Paragraph(html.escape(f"{chapter['part_title']} · {chapter_label}"), styles["ChapterKicker"]))
         story.extend(markdown_to_flowables(chapter["markdown"], width))
 
-    doc.build(story, onFirstPage=draw_page_number, onLaterPages=draw_page_number)
+    doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page)
     print(f"Wrote {OUT_FILE.relative_to(ROOT)}")
 
 
