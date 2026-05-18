@@ -45,6 +45,15 @@ function chapterNumber(fileName, fallback) {
   return Number(displayFileName.match(/(?:^|[_-])Ch(?:apter)?(\d+)/i)?.[1] ?? displayFileName.match(/(\d+)/)?.[1] ?? fallback);
 }
 
+function chineseNumber(value) {
+  const digits = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+  if (value <= 10) return value === 10 ? "十" : digits[value];
+  if (value < 20) return "十" + digits[value - 10];
+  const tens = Math.floor(value / 10);
+  const ones = value % 10;
+  return digits[tens] + "十" + (ones ? digits[ones] : "");
+}
+
 function sourceFiles(source) {
   const allFiles = fs.readdirSync(cwd).filter((name) => name.toLowerCase().endsWith(".md"));
   const patterns = Array.isArray(source.files) ? source.files : [source.files];
@@ -68,6 +77,7 @@ function parseMeta(book, source, fileName, sourceIndex, fileIndex) {
   const displayFileName = path.basename(fileName);
   const partKey = source.id ?? `part-${sourceIndex + 1}`;
   const rawChapterMatch = displayFileName.match(/(?:^|[_-])Ch(?:apter)?(\d+)/i);
+  const appendixMatch = displayFileName.match(/Appendix[_-]?([A-Z])/i);
   const chapterInPart = rawChapterMatch ? Number(rawChapterMatch[1]) : fileIndex + 1;
   const h1 = [...markdown.matchAll(/^#\s+(.+)$/gm)].map((match) => match[1].trim());
   const h2 = [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1].trim());
@@ -77,6 +87,10 @@ function parseMeta(book, source, fileName, sourceIndex, fileIndex) {
     h2.find((title) => !title.startsWith("Part ")) ??
     displayFileName.replace(/\.md$/i, "");
   const globalChapter = Number(source.chapterOffset ?? 0) + chapterInPart;
+  const displayTitle =
+    Number(source.chapterOffset ?? 0) > 0 && !appendixMatch
+      ? chapterTitle.replace(/^第[一二三四五六七八九十]+章([：:])/, `第${chineseNumber(globalChapter)}章$1`)
+      : chapterTitle;
 
   return {
     id: `${book.id}-${partKey}-${chapterInPart}`.toLowerCase(),
@@ -86,7 +100,9 @@ function parseMeta(book, source, fileName, sourceIndex, fileIndex) {
     partTitle: source.part ?? source.title ?? `Part ${sourceIndex + 1}`,
     chapterInPart,
     globalChapter,
-    title: chapterTitle,
+    numberLabel: appendixMatch ? appendixMatch[1].toUpperCase() : "",
+    metaLabel: appendixMatch ? `附录 ${appendixMatch[1].toUpperCase()}` : "",
+    title: displayTitle,
     markdown,
     wordCount: Array.from(markdown.replace(/```[\s\S]*?```/g, "").replace(/\s/g, "")).length,
   };
@@ -1325,11 +1341,12 @@ const html = String.raw`<!doctype html>
     }
 
     function chapterNumberText(chapter) {
+      if (chapter.numberLabel) return chapter.numberLabel;
       return chapter.globalChapter === 0 ? "序" : String(chapter.globalChapter);
     }
 
     function chapterMetaText(chapter) {
-      const chapterText = chapter.globalChapter === 0 ? "前言" : "第 " + chapter.globalChapter + " 章";
+      const chapterText = chapter.metaLabel || (chapter.globalChapter === 0 ? "前言" : "第 " + chapter.globalChapter + " 章");
       return chapter.partTitle + " / " + chapterText + " / " + (Math.round(chapter.wordCount / 100) / 10) + " 千字";
     }
 

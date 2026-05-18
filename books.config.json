@@ -7,7 +7,7 @@
     {
       "id": "ai-literacy",
       "title": "给中文使用者的 AI 原生工作手册",
-      "description": "写给 Allie 和她这一代人的 AI 科普小书。当前先展示重写后的 Part I，后续章节会继续更新。",
+      "description": "写给 Allie 和她这一代人的 AI 科普小书。从基础认知到组织协作，并附上工具、选型、自测与延伸学习指南。",
       "sources": [
         {
           "part": "Part I - 全民 AI 素养基础",
@@ -22,6 +22,33 @@
           ],
           "chapterOffset": 0,
           "titleExcludes": ["AI 素养与 AI 原生工作基础", "给中文使用者的 AI 原生工作手册", "给中文使用者的 AI 原生工作手册 V2"]
+        },
+        {
+          "part": "Part II - AI 原生组织协作基础",
+          "files": [
+            "Books/V2/AI_Literacy_PartII_Ch1.md",
+            "Books/V2/AI_Literacy_PartII_Ch2.md",
+            "Books/V2/AI_Literacy_PartII_Ch3.md",
+            "Books/V2/AI_Literacy_PartII_Ch4.md",
+            "Books/V2/AI_Literacy_PartII_Ch5.md",
+            "Books/V2/AI_Literacy_PartII_Ch6.md",
+            "Books/V2/AI_Literacy_PartII_Ch7.md",
+            "Books/V2/AI_Literacy_PartII_Ch8.md",
+            "Books/V2/AI_Literacy_PartII_Ch9.md",
+            "Books/V2/AI_Literacy_PartII_Ch10.md"
+          ],
+          "chapterOffset": 7,
+          "titleExcludes": ["AI 原生组织协作基础", "Part II"]
+        },
+        {
+          "part": "附录",
+          "files": [
+            "Books/V2/AI_Literacy_Appendix_A.md",
+            "Books/V2/AI_Literacy_Appendix_B.md",
+            "Books/V2/AI_Literacy_Appendix_C.md",
+            "Books/V2/AI_Literacy_Appendix_D.md"
+          ],
+          "chapterOffset": 17
         }
       ]
     },
