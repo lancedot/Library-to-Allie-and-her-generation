@@ -12,7 +12,15 @@ node build-reader.mjs
 
 生成后的入口是 `index.html`。
 
-同时会生成 `book-one.html`，这是只包含第一本书正文阅读器的单页分发版，不带首页、书城和导入工具。
+同时会生成 `downloads/ai-native-work-handbook.html`，这是只包含第一本书正文阅读器的单页分发版，不带首页、书城和导入工具。
+
+生成单书 PDF：
+
+```powershell
+python scripts/build_book_pdf.py
+```
+
+PDF 输出到 `downloads/ai-native-work-handbook.pdf`。
 
 ## 内容配置
 

@@ -78,6 +78,8 @@ function parseMeta(book, source, fileName, sourceIndex, fileIndex) {
   const partKey = source.id ?? `part-${sourceIndex + 1}`;
   const rawChapterMatch = displayFileName.match(/(?:^|[_-])Ch(?:apter)?(\d+)/i);
   const appendixMatch = displayFileName.match(/Appendix[_-]?([A-Z])/i);
+  const introductionMatch = /Introduction/i.test(displayFileName);
+  const prefaceMatch = /Preface/i.test(displayFileName);
   const chapterInPart = rawChapterMatch ? Number(rawChapterMatch[1]) : fileIndex + 1;
   const h1 = [...markdown.matchAll(/^#\s+(.+)$/gm)].map((match) => match[1].trim());
   const h2 = [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1].trim());
@@ -100,8 +102,8 @@ function parseMeta(book, source, fileName, sourceIndex, fileIndex) {
     partTitle: source.part ?? source.title ?? `Part ${sourceIndex + 1}`,
     chapterInPart,
     globalChapter,
-    numberLabel: appendixMatch ? appendixMatch[1].toUpperCase() : "",
-    metaLabel: appendixMatch ? `附录 ${appendixMatch[1].toUpperCase()}` : "",
+    numberLabel: introductionMatch ? "引" : prefaceMatch ? "序" : appendixMatch ? appendixMatch[1].toUpperCase() : "",
+    metaLabel: introductionMatch ? "引言" : prefaceMatch ? "序言" : appendixMatch ? `附录 ${appendixMatch[1].toUpperCase()}` : "",
     title: displayTitle,
     markdown,
     wordCount: Array.from(markdown.replace(/```[\s\S]*?```/g, "").replace(/\s/g, "")).length,
@@ -117,6 +119,7 @@ const library = {
     const normalizedBook = {
       id: book.id ?? `book-${bookIndex + 1}`,
       title: book.title ?? `Book ${bookIndex + 1}`,
+      author: book.author ?? "",
       description: book.description ?? "",
       sources: book.sources ?? [{ part: "正文", files: book.files ?? "*.md" }],
     };
@@ -129,6 +132,7 @@ const library = {
     return {
       id: normalizedBook.id,
       title: normalizedBook.title,
+      author: normalizedBook.author,
       description: normalizedBook.description,
       chapters,
       chapterCount: chapters.length,
@@ -1924,7 +1928,9 @@ function writeReader(outputName, readerLibrary, title) {
   const output = html
     .replaceAll("__LIBRARY_TITLE__", title)
     .replace("__LIBRARY_DATA__", JSON.stringify(readerLibrary).replace(/</g, "\\u003c"));
-  fs.writeFileSync(path.join(cwd, outputName), output, "utf8");
+  const outputPath = path.join(cwd, outputName);
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, output, "utf8");
   console.log(
     `Wrote ${outputName} with ${readerLibrary.books.length} book(s), ${readerLibrary.books.reduce(
       (total, book) => total + book.chapterCount,

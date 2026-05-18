@@ -1,14 +1,23 @@
 {
   "libraryTitle": "Library to Allie and her generation",
   "output": "index.html",
-  "singleBookOutput": "book-one.html",
+  "singleBookOutput": "downloads/ai-native-work-handbook.html",
   "authorTools": false,
   "books": [
     {
       "id": "ai-literacy",
       "title": "给中文使用者的 AI 原生工作手册",
+      "author": "Alex Liu",
       "description": "写给 Allie 和她这一代人的 AI 科普小书。从基础认知到组织协作，并附上工具、选型、自测与延伸学习指南。",
       "sources": [
+        {
+          "part": "开篇",
+          "files": [
+            "Books/V2/AI_Literacy_Introduction.md",
+            "Books/V2/AI_Literacy_Preface.md"
+          ],
+          "chapterOffset": -2
+        },
         {
           "part": "Part I - 全民 AI 素养基础",
           "files": [
