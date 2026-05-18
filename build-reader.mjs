@@ -1493,7 +1493,7 @@ const html = String.raw`<!doctype html>
             '<span class="chapter-num">' + chapterNumberText(chapter) + '</span>' +
             '<span>' +
               '<span class="chapter-name">' + escapeHtml(chapter.title) + '</span>' +
-              '<span class="chapter-meta">' + (Math.round(chapter.wordCount / 100) / 10) + ' 千字 · ' + escapeHtml(chapter.fileName) + '</span>' +
+              '<span class="chapter-meta">' + (Math.round(chapter.wordCount / 100) / 10) + ' 千字</span>' +
             '</span>' +
           '</button>'
         ).join("");

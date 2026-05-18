@@ -6,7 +6,7 @@
   "books": [
     {
       "id": "ai-literacy",
-      "title": "给中文使用者的 AI 原生工作手册 V2",
+      "title": "给中文使用者的 AI 原生工作手册",
       "description": "写给 Allie 和她这一代人的 AI 科普小书。当前先展示重写后的 Part I，后续章节会继续更新。",
       "sources": [
         {
