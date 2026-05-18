@@ -13,6 +13,7 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import HRFlowable, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus.tableofcontents import TableOfContents
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -329,6 +330,27 @@ def para(text: str, style_name: str = "BookBody") -> Paragraph:
     return Paragraph(inline_markup(text), styles[style_name])
 
 
+class BookDocTemplate(SimpleDocTemplate):
+    def afterFlowable(self, flowable):
+        bookmark_name = getattr(flowable, "_bookmark_name", None)
+        if not bookmark_name:
+            return
+        title = getattr(flowable, "_toc_title", "")
+        level = getattr(flowable, "_toc_level", 0)
+        self.canv.bookmarkPage(bookmark_name)
+        self.canv.addOutlineEntry(title, bookmark_name, level=level, closed=False)
+        self.notify("TOCEntry", (level, title, self.page, bookmark_name))
+
+
+def chapter_anchor(chapter: dict) -> Paragraph:
+    title = f"{chapter['part_title']} · {chapter['meta_label']}"
+    paragraph = Paragraph(html.escape(title), styles["ChapterKicker"])
+    paragraph._bookmark_name = chapter["id"]
+    paragraph._toc_title = f"{chapter['number_label']} {chapter['title']}"
+    paragraph._toc_level = 0
+    return paragraph
+
+
 def flush_paragraph(story: list, paragraph: list[str]) -> None:
     if paragraph:
         story.append(para(" ".join(paragraph)))
@@ -458,7 +480,7 @@ def draw_page(canvas, doc):
 
 def build_pdf() -> None:
     book, chapters = load_chapters()
-    doc = SimpleDocTemplate(
+    doc = BookDocTemplate(
         str(OUT_FILE),
         pagesize=A4,
         rightMargin=17 * mm,
@@ -482,23 +504,31 @@ def build_pdf() -> None:
     story.append(PageBreak())
 
     story.append(Paragraph("目录", styles["TocTitle"]))
-    current_part = ""
-    for chapter in chapters:
-        if chapter["part_title"] != current_part:
-            current_part = chapter["part_title"]
-            story.append(Paragraph(html.escape(current_part), styles["TocPart"]))
-        number = chapter["number_label"]
-        story.append(Paragraph(f"{number}　{html.escape(chapter['title'])}", styles["TocRow"]))
+    toc = TableOfContents()
+    toc.levelStyles = [
+        ParagraphStyle(
+            "TocEntry",
+            parent=styles["TocRow"],
+            fontName=FONT,
+            fontSize=11,
+            leading=18,
+            leftIndent=0,
+            firstLineIndent=0,
+            rightIndent=18,
+            textColor=TEXT,
+            wordWrap="CJK",
+        )
+    ]
+    story.append(toc)
     story.append(PageBreak())
 
     for index, chapter in enumerate(chapters):
         if index:
             story.append(PageBreak())
-        chapter_label = chapter["meta_label"]
-        story.append(Paragraph(html.escape(f"{chapter['part_title']} · {chapter_label}"), styles["ChapterKicker"]))
+        story.append(chapter_anchor(chapter))
         story.extend(markdown_to_flowables(chapter["markdown"], width))
 
-    doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page)
+    doc.multiBuild(story, onFirstPage=draw_page, onLaterPages=draw_page)
     print(f"Wrote {OUT_FILE.relative_to(ROOT)}")
 
 
