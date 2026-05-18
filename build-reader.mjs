@@ -41,7 +41,8 @@ function wildcardToRegExp(pattern) {
 }
 
 function chapterNumber(fileName, fallback) {
-  return Number(fileName.match(/(?:^|[_-])Ch(?:apter)?(\d+)/i)?.[1] ?? fileName.match(/(\d+)/)?.[1] ?? fallback);
+  const displayFileName = path.basename(fileName);
+  return Number(displayFileName.match(/(?:^|[_-])Ch(?:apter)?(\d+)/i)?.[1] ?? displayFileName.match(/(\d+)/)?.[1] ?? fallback);
 }
 
 function sourceFiles(source) {
@@ -64,8 +65,9 @@ function sourceFiles(source) {
 
 function parseMeta(book, source, fileName, sourceIndex, fileIndex) {
   const markdown = fs.readFileSync(path.join(cwd, fileName), "utf8");
+  const displayFileName = path.basename(fileName);
   const partKey = source.id ?? `part-${sourceIndex + 1}`;
-  const rawChapterMatch = fileName.match(/(?:^|[_-])Ch(?:apter)?(\d+)/i);
+  const rawChapterMatch = displayFileName.match(/(?:^|[_-])Ch(?:apter)?(\d+)/i);
   const chapterInPart = rawChapterMatch ? Number(rawChapterMatch[1]) : fileIndex + 1;
   const h1 = [...markdown.matchAll(/^#\s+(.+)$/gm)].map((match) => match[1].trim());
   const h2 = [...markdown.matchAll(/^##\s+(.+)$/gm)].map((match) => match[1].trim());
@@ -73,13 +75,13 @@ function parseMeta(book, source, fileName, sourceIndex, fileIndex) {
   const chapterTitle =
     h1.find((title) => ![...excludes].some((exclude) => exclude && title.includes(exclude))) ??
     h2.find((title) => !title.startsWith("Part ")) ??
-    fileName.replace(/\.md$/i, "");
+    displayFileName.replace(/\.md$/i, "");
   const globalChapter = Number(source.chapterOffset ?? 0) + chapterInPart;
 
   return {
     id: `${book.id}-${partKey}-${chapterInPart}`.toLowerCase(),
     bookId: book.id,
-    fileName,
+    fileName: displayFileName,
     partKey,
     partTitle: source.part ?? source.title ?? `Part ${sourceIndex + 1}`,
     chapterInPart,
@@ -94,6 +96,7 @@ const config = readConfig();
 const library = {
   title: config.libraryTitle ?? "本地阅读器",
   authorTools: config.authorTools === true,
+  singleBook: false,
   books: (config.books ?? []).map((book, bookIndex) => {
     const normalizedBook = {
       id: book.id ?? `book-${bookIndex + 1}`,
@@ -119,6 +122,7 @@ const library = {
 };
 
 const outputFile = config.output ?? "writing-planner.html";
+const singleBookOutputFile = config.singleBookOutput ?? "book-one.html";
 
 const html = String.raw`<!doctype html>
 <html lang="zh-CN">
@@ -288,6 +292,12 @@ const html = String.raw`<!doctype html>
       border-color: var(--accent);
       background: var(--accent-soft);
       color: var(--accent);
+    }
+
+    body.single-book .site-nav,
+    body.single-book .book-picker,
+    body.single-book .import-tools {
+      display: none !important;
     }
 
     .import-tools {
@@ -1115,14 +1125,14 @@ const html = String.raw`<!doctype html>
   <script>
     const library = JSON.parse(document.getElementById("library-data").textContent);
     const packagedBooks = library.books || [];
-    let importedBooks = loadJson("reader.importedBooks", []);
+    let importedBooks = library.singleBook ? [] : loadJson("reader.importedBooks", []);
     let notes = loadJson("reader.notes", []);
     let selectedTextForNote = "";
     let pendingNoteId = "";
     const state = {
-      activeBookId: localStorage.getItem("reader.activeBookId") || allBooks()[0]?.id,
-      activeId: localStorage.getItem("reader.activeId"),
-      view: localStorage.getItem("reader.view") || "home",
+      activeBookId: library.singleBook ? packagedBooks[0]?.id : localStorage.getItem("reader.activeBookId") || allBooks()[0]?.id,
+      activeId: library.singleBook ? localStorage.getItem("reader.singleBook.activeId") : localStorage.getItem("reader.activeId"),
+      view: library.singleBook ? "reader" : localStorage.getItem("reader.view") || "home",
       query: "",
       fontSize: Number(localStorage.getItem("reader.fontSize") || 19),
       theme: localStorage.getItem("reader.theme") || "light",
@@ -1161,6 +1171,7 @@ const html = String.raw`<!doctype html>
 
     document.documentElement.dataset.theme = state.theme;
     document.documentElement.style.setProperty("--font-size", state.fontSize + "px");
+    document.body.classList.toggle("single-book", Boolean(library.singleBook));
     libraryTitle.textContent = library.title || "本地阅读器";
     importTools.style.display = library.authorTools ? "" : "none";
 
@@ -1173,6 +1184,7 @@ const html = String.raw`<!doctype html>
     }
 
     function saveImportedBooks() {
+      if (library.singleBook) return;
       localStorage.setItem("reader.importedBooks", JSON.stringify(importedBooks));
     }
 
@@ -1207,7 +1219,7 @@ const html = String.raw`<!doctype html>
 
     function setView(view) {
       state.view = view;
-      localStorage.setItem("reader.view", view);
+      if (!library.singleBook) localStorage.setItem("reader.view", view);
       document.body.dataset.view = view;
       homeButton.classList.toggle("active", view === "home");
       bookstoreButton.classList.toggle("active", view === "bookstore");
@@ -1498,6 +1510,7 @@ const html = String.raw`<!doctype html>
       state.activeBookId = activeBook().id;
       localStorage.setItem("reader.activeBookId", state.activeBookId);
       localStorage.setItem("reader.activeId", state.activeId);
+      if (library.singleBook) localStorage.setItem("reader.singleBook.activeId", state.activeId);
       renderBookPicker();
       currentTitle.textContent = activeBook().title + " / " + chapter.title;
       articleMeta.textContent = chapterMetaText(chapter);
@@ -1890,8 +1903,27 @@ const html = String.raw`<!doctype html>
 </body>
 </html>`;
 
-const output = html
-  .replaceAll("__LIBRARY_TITLE__", config.libraryTitle ?? "本地阅读器")
-  .replace("__LIBRARY_DATA__", JSON.stringify(library).replace(/</g, "\\u003c"));
-fs.writeFileSync(path.join(cwd, outputFile), output, "utf8");
-console.log(`Wrote ${outputFile} with ${library.books.length} book(s), ${library.books.reduce((total, book) => total + book.chapterCount, 0)} chapters.`);
+function writeReader(outputName, readerLibrary, title) {
+  const output = html
+    .replaceAll("__LIBRARY_TITLE__", title)
+    .replace("__LIBRARY_DATA__", JSON.stringify(readerLibrary).replace(/</g, "\\u003c"));
+  fs.writeFileSync(path.join(cwd, outputName), output, "utf8");
+  console.log(
+    `Wrote ${outputName} with ${readerLibrary.books.length} book(s), ${readerLibrary.books.reduce(
+      (total, book) => total + book.chapterCount,
+      0
+    )} chapters.`
+  );
+}
+
+writeReader(outputFile, library, config.libraryTitle ?? "本地阅读器");
+
+if (library.books[0]) {
+  const firstBookLibrary = {
+    title: library.books[0].title,
+    authorTools: false,
+    singleBook: true,
+    books: [library.books[0]],
+  };
+  writeReader(singleBookOutputFile, firstBookLibrary, library.books[0].title);
+}

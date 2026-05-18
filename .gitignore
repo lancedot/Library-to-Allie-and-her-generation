@@ -2,5 +2,7 @@
 node_modules/
 *.log
 tmp_*
+book-one.html
+output/
 Founders_Playbook_Ch1_Ch2.zh.md
 Founders_Playbook_Ch3_Ch4.zh.md

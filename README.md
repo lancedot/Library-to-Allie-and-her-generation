@@ -1,8 +1,8 @@
-# 给中文使用者的 AI 原生工作手册
+# Library to Allie and her generation
 
-这是一个面向中文使用者的 AI 素养与 AI 原生工作小书站。
+这是一个给 Allie 和她这一代人的 AI 学习与写作小书站。
 
-它受 OpenAI、Anthropic 等一线 AI 公司公开发布的实践和方法启发，尝试按作者自己的理解，重新写一套更适合中文语境的 AI 科普、工作框架和行动建议。
+它用来分享我对 AI 的学习过程、思考，以及试着和 AI 讨论来写作的实验。当前公开展示的是重写后的 V2 内容；V1 稿件保留在 `Books/V1/` 中，暂不展示在网页上。
 
 ## 本地生成
 
@@ -12,9 +12,11 @@ node build-reader.mjs
 
 生成后的入口是 `index.html`。
 
+同时会生成 `book-one.html`，这是只包含第一本书正文阅读器的单页分发版，不带首页、书城和导入工具。
+
 ## 内容配置
 
-书籍和章节来源配置在 `books.config.json`。
+书籍和章节来源配置在 `books.config.json`。正文 Markdown 统一放在 `Books/` 下。
 
 ## 部署
 

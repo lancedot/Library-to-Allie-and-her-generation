@@ -1,28 +1,27 @@
 {
-  "libraryTitle": "给中文使用者的 AI 原生工作手册",
+  "libraryTitle": "Library to Allie and her generation",
   "output": "index.html",
+  "singleBookOutput": "book-one.html",
   "authorTools": false,
   "books": [
     {
       "id": "ai-literacy",
-      "title": "给中文使用者的 AI 原生工作手册",
-      "description": "从一线 AI 公司的公开实践出发，重新理解普通人、团队和组织该如何使用 AI。",
+      "title": "给中文使用者的 AI 原生工作手册 V2",
+      "description": "写给 Allie 和她这一代人的 AI 科普小书。当前先展示重写后的 Part I，后续章节会继续更新。",
       "sources": [
         {
-          "part": "开篇",
-          "files": "AI_Literacy_Preface_Ch0.md",
-          "chapterOffset": 0
-        },
-        {
           "part": "Part I - 全民 AI 素养基础",
-          "files": "AI_Literacy_PartI_Ch*.md",
+          "files": [
+            "Books/V2/AI_Literacy_PartI_Ch1_v2.md",
+            "Books/V2/AI_Literacy_PartI_Ch2_v3.md",
+            "Books/V2/AI_Literacy_PartI_Ch3_v3.md",
+            "Books/V2/AI_Literacy_PartI_Ch4_v2.md",
+            "Books/V2/AI_Literacy_PartI_Ch5_v3.md",
+            "Books/V2/AI_Literacy_PartI_Ch6_v2.md",
+            "Books/V2/AI_Literacy_PartI_Ch7_v2.md"
+          ],
           "chapterOffset": 0,
-          "titleExcludes": ["AI 素养与 AI 原生工作基础", "给中文使用者的 AI 原生工作手册"]
-        },
-        {
-          "part": "Part II - AI 原生工作基础",
-          "files": "AI_Literacy_PartII_Ch*.md",
-          "chapterOffset": 7
+          "titleExcludes": ["AI 素养与 AI 原生工作基础", "给中文使用者的 AI 原生工作手册", "给中文使用者的 AI 原生工作手册 V2"]
         }
       ]
     },
@@ -34,11 +33,11 @@
         {
           "part": "正文",
           "files": [
-            "Founders_Playbook_Ch1.zh.md",
-            "Founders_Playbook_Ch2.zh.md",
-            "Founders_Playbook_Ch3.zh.md",
-            "Founders_Playbook_Ch4.zh.md",
-            "Founders_Playbook_Ch5_Resources.zh.md"
+            "Books/Translate/Founders_Playbook_Ch1.zh.md",
+            "Books/Translate/Founders_Playbook_Ch2.zh.md",
+            "Books/Translate/Founders_Playbook_Ch3.zh.md",
+            "Books/Translate/Founders_Playbook_Ch4.zh.md",
+            "Books/Translate/Founders_Playbook_Ch5_Resources.zh.md"
           ],
           "chapterOffset": 0,
           "titleExcludes": ["创始人手册：构建 AI 原生创业公司"]
