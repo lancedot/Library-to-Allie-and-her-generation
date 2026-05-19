@@ -12,7 +12,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import HRFlowable, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import HRFlowable, KeepTogether, PageBreak, Paragraph, Preformatted, SimpleDocTemplate, Spacer, Table, TableStyle
 from reportlab.platypus.tableofcontents import TableOfContents
 
 
@@ -279,6 +279,25 @@ styles.add(
 )
 styles.add(
     ParagraphStyle(
+        "CodeBlock",
+        parent=styles["BodyText"],
+        fontName=FONT,
+        fontSize=9.5,
+        leading=14,
+        leftIndent=8,
+        rightIndent=8,
+        spaceBefore=8,
+        spaceAfter=10,
+        textColor=colors.HexColor("#3C443F"),
+        backColor=colors.HexColor("#FFFDF8"),
+        borderColor=LINE,
+        borderWidth=0.6,
+        borderPadding=7,
+        wordWrap="CJK",
+    )
+)
+styles.add(
+    ParagraphStyle(
         "TocTitle",
         parent=styles["Heading1"],
         fontName=FONT_BOLD,
@@ -412,13 +431,32 @@ def markdown_to_flowables(markdown: str, width: float) -> list:
     list_items: list[str] = []
     list_type: str | None = None
     table_rows: list[str] = []
+    code_lines: list[str] = []
+    in_code_block = False
 
     def flush_all() -> None:
         flush_paragraph(story, paragraph)
         flush_list(story, list_items, list_type)
         flush_table(story, table_rows, width)
 
+    def flush_code() -> None:
+        if code_lines:
+            story.append(KeepTogether([Preformatted("\n".join(code_lines), styles["CodeBlock"])]))
+            code_lines.clear()
+
     for raw_line in markdown.splitlines():
+        if re.match(r"^```", raw_line.strip()):
+            if in_code_block:
+                flush_code()
+                in_code_block = False
+            else:
+                flush_all()
+                in_code_block = True
+            continue
+        if in_code_block:
+            code_lines.append(raw_line)
+            continue
+
         line = raw_line.strip()
         if not line:
             flush_all()
@@ -465,6 +503,7 @@ def markdown_to_flowables(markdown: str, width: float) -> list:
         paragraph.append(line)
 
     flush_all()
+    flush_code()
     return story
 
 

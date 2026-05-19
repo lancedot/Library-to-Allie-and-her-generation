@@ -644,6 +644,19 @@ const html = String.raw`<!doctype html>
       border-radius: 3px;
     }
 
+    .content pre {
+      margin: 24px 0;
+      padding: 16px 18px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      font-family: "Consolas", "Microsoft YaHei", monospace;
+      font-size: 0.86em;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
     .home-kicker {
       margin: 0 0 12px;
       color: var(--accent);
@@ -1379,6 +1392,8 @@ const html = String.raw`<!doctype html>
       let list = [];
       let listType = null;
       let tableRows = [];
+      let codeLines = [];
+      let inCodeBlock = false;
 
       function flushParagraph() {
         if (!paragraph.length) return;
@@ -1425,7 +1440,29 @@ const html = String.raw`<!doctype html>
         tableRows = [];
       }
 
+      function flushCode() {
+        if (!codeLines.length) return;
+        blocks.push("<pre><code>" + escapeHtml(codeLines.join("\n")) + "</code></pre>");
+        codeLines = [];
+      }
+
       for (const rawLine of lines) {
+        if (rawLine.trim().startsWith(String.fromCharCode(96).repeat(3))) {
+          if (inCodeBlock) {
+            flushCode();
+            inCodeBlock = false;
+          } else {
+            flushParagraph();
+            flushList();
+            flushTable();
+            inCodeBlock = true;
+          }
+          continue;
+        }
+        if (inCodeBlock) {
+          codeLines.push(rawLine);
+          continue;
+        }
         const line = rawLine.trim();
         if (!line) {
           flushParagraph();
@@ -1479,6 +1516,7 @@ const html = String.raw`<!doctype html>
       flushParagraph();
       flushList();
       flushTable();
+      flushCode();
 
       let html = blocks.join("\n");
       if (query.trim()) {
