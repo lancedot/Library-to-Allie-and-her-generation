@@ -124,6 +124,7 @@ const library = {
       title: book.title ?? `Book ${bookIndex + 1}`,
       author: book.author ?? "",
       description: book.description ?? "",
+      category: book.category ?? "原创写作",
       singleOutput: book.singleOutput ?? "",
       sources: book.sources ?? [{ part: "正文", files: book.files ?? "*.md" }],
     };
@@ -138,6 +139,7 @@ const library = {
       title: normalizedBook.title,
       author: normalizedBook.author,
       description: normalizedBook.description,
+      category: normalizedBook.category,
       singleOutput: normalizedBook.singleOutput,
       chapters,
       chapterCount: chapters.length,
@@ -723,6 +725,25 @@ const html = String.raw`<!doctype html>
       line-height: 1.7;
     }
 
+    .book-group + .book-group {
+      margin-top: 34px;
+    }
+
+    .book-group-title {
+      margin: 0 0 8px;
+      font-size: 20px;
+      line-height: 1.35;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .book-group-lede {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
     .book-cover {
       position: relative;
       display: grid;
@@ -1269,18 +1290,62 @@ const html = String.raw`<!doctype html>
       document.body.classList.remove("menu-open");
     }
 
-    function renderBookCovers() {
-      const books = allBooks();
-      return books.map((item, index) =>
+    function renderBookCovers(bookList) {
+      const sourceBooks = allBooks();
+      const books = bookList || sourceBooks;
+      return books.map((item) => {
+        const globalIndex = sourceBooks.findIndex((book) => book.id === item.id);
+        const displayIndex = globalIndex >= 0 ? globalIndex + 1 : 1;
+        return (
         '<button class="book-cover" data-start-book="' + escapeHtml(item.id) + '" type="button" aria-label="打开' + escapeHtml(item.title) + '">' +
-          '<span class="cover-kicker">Book ' + String(index + 1).padStart(2, "0") + '</span>' +
+          '<span class="cover-kicker">Book ' + String(displayIndex).padStart(2, "0") + '</span>' +
           '<span>' +
             '<span class="cover-title">' + escapeHtml(item.title) + '</span>' +
             '<span class="cover-subtitle">' + escapeHtml(item.description || "点击进入阅读。") + '</span>' +
           '</span>' +
           '<span class="cover-footer"><span>' + (item.chapterCount || 0) + ' 篇</span><span>点击阅读</span></span>' +
         '</button>'
-      ).join("");
+        );
+      }).join("");
+    }
+
+    function renderBookGroups() {
+      const groups = [
+        {
+          key: "原创写作",
+          title: "我写的",
+          lede: "我的 AI 学习、实践和写作实验。"
+        },
+        {
+          key: "翻译与参考",
+          title: "翻译与参考",
+          lede: "来自公开材料的翻译、摘录和再理解。"
+        }
+      ];
+      const books = allBooks();
+      const rendered = groups.map((group) => {
+        const groupBooks = books.filter((book) => (book.category || "原创写作") === group.key);
+        if (!groupBooks.length) return "";
+        return (
+          '<section class="book-group">' +
+            '<h3 class="book-group-title">' + escapeHtml(group.title) + '</h3>' +
+            '<p class="book-group-lede">' + escapeHtml(group.lede) + '</p>' +
+            '<div class="book-shelf">' + renderBookCovers(groupBooks) + '</div>' +
+          '</section>'
+        );
+      });
+      const knownKeys = new Set(groups.map((group) => group.key));
+      const otherBooks = books.filter((book) => !knownKeys.has(book.category || "原创写作"));
+      if (otherBooks.length) {
+        rendered.push(
+          '<section class="book-group">' +
+            '<h3 class="book-group-title">其他</h3>' +
+            '<p class="book-group-lede">暂未归类的内容。</p>' +
+            '<div class="book-shelf">' + renderBookCovers(otherBooks) + '</div>' +
+          '</section>'
+        );
+      }
+      return rendered.join("");
     }
 
     function renderHome() {
@@ -1302,8 +1367,8 @@ const html = String.raw`<!doctype html>
           '</div>' +
           '<div>' +
             '<h2 class="bookstore-title">书城</h2>' +
-            '<p class="bookstore-lede">目前收录两本：一本是我的 AI 科普与 AI 原生工作手册，一本是 Anthropic Founder&#39;s Playbook 的中文翻译稿。</p>' +
-            '<div class="book-shelf">' + renderBookCovers() + '</div>' +
+            '<p class="bookstore-lede">这里按内容来源分成两类：一类是我自己的 AI 学习、实践和写作；另一类是公开材料的翻译与参考。</p>' +
+            renderBookGroups() +
           '</div>' +
           '<div class="home-copy">' +
             '<h2>参考与启发</h2>' +
@@ -1326,8 +1391,8 @@ const html = String.raw`<!doctype html>
       articleMeta.textContent = "当前收录的书";
       content.innerHTML =
         '<h1>书城</h1>' +
-        '<p class="bookstore-lede">这里放我正在整理和写作的书。它们有些是原创科普，有些是学习过程中的翻译、摘录和再理解。</p>' +
-        '<div class="book-shelf">' + renderBookCovers() + '</div>';
+        '<p class="bookstore-lede">这里放我正在整理和写作的书。按内容来源分成两类：我写的，以及翻译与参考。以后新增书只要在配置里标好分类，就会自动进入对应区域。</p>' +
+        renderBookGroups();
       renderToc();
       renderNotes();
       requestAnimationFrame(updateProgress);

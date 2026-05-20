@@ -9,6 +9,7 @@
       "title": "AI 素养基础",
       "author": "刘晃（Alex Liu）",
       "kicker": "AI Literacy Foundations",
+      "category": "原创写作",
       "description": "写给 Allie 和她这一代人的 AI 素养基础读本：先建立对 AI 的清醒直觉，再学习如何安全、有效地协作。",
       "singleOutput": "downloads/ai-literacy-foundations.html",
       "pdfOutput": "downloads/ai-literacy-foundations.pdf",
@@ -49,6 +50,7 @@
       "title": "AI 原生工作基础",
       "author": "刘晃（Alex Liu）",
       "kicker": "AI-Native Work Foundations",
+      "category": "原创写作",
       "description": "接在《AI 素养基础》之后，讨论个人、团队和组织如何把 AI 变成真正的工作方式。",
       "singleOutput": "downloads/ai-native-work-foundations.html",
       "pdfOutput": "downloads/ai-native-work-foundations.pdf",
@@ -105,6 +107,7 @@
     {
       "id": "founders-playbook",
       "title": "创始人手册：构建 AI 原生创业公司",
+      "category": "翻译与参考",
       "description": "译自 Anthropic 的 The Founder's Playbook，关于 AI 原生创业生命周期、创始人角色和 Claude 工具链。",
       "sources": [
         {
@@ -128,6 +131,7 @@
       "title": "财务部门的 AI 转型实战手册",
       "author": "刘晃（Alex Liu）",
       "kicker": "Finance AI Playbook",
+      "category": "原创写作",
       "description": "一个财务人从真实场景出发，写给财务团队的 AI 转型实战 Playbook。",
       "singleOutput": "downloads/finance-ai-playbook.html",
       "pdfOutput": "downloads/finance-ai-playbook.pdf",
