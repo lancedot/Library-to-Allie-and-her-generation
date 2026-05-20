@@ -1,65 +1,104 @@
 {
   "libraryTitle": "Library to Allie and her generation",
   "output": "index.html",
-  "singleBookOutput": "downloads/ai-native-work-handbook.html",
+  "singleBookOutput": "downloads/ai-literacy-foundations.html",
   "authorTools": false,
   "books": [
     {
-      "id": "ai-literacy",
-      "title": "给中文使用者的 AI 原生工作手册",
-      "author": "Alex Liu",
-      "kicker": "AI Native Work Handbook",
-      "description": "写给 Allie 和她这一代人的 AI 科普小书。从基础认知到组织协作，并附上工具、选型、自测与延伸学习指南。",
-      "pdfOutput": "downloads/ai-native-work-handbook.pdf",
+      "id": "ai-literacy-foundations",
+      "title": "AI 素养基础",
+      "author": "刘晃（Alex Liu）",
+      "kicker": "AI Literacy Foundations",
+      "description": "写给 Allie 和她这一代人的 AI 素养基础读本：先建立对 AI 的清醒直觉，再学习如何安全、有效地协作。",
+      "singleOutput": "downloads/ai-literacy-foundations.html",
+      "pdfOutput": "downloads/ai-literacy-foundations.pdf",
       "sources": [
         {
           "part": "开篇",
           "files": [
-            "Books/V2/AI_Literacy_Preface.md",
-            "Books/V2/AI_Literacy_Introduction.md"
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Preface.md",
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Introduction.md"
           ],
-          "chapterOffset": -2
+          "chapterOffset": -2,
+          "titleExcludes": [
+            "AI 素养基础",
+            "AI Literacy Foundations"
+          ]
         },
         {
-          "part": "Part I - 全民 AI 素养基础",
+          "part": "正文",
           "files": [
-            "Books/V2/AI_Literacy_PartI_Ch1_v2.md",
-            "Books/V2/AI_Literacy_PartI_Ch2_v3.md",
-            "Books/V2/AI_Literacy_PartI_Ch3_v3.md",
-            "Books/V2/AI_Literacy_PartI_Ch4_v2.md",
-            "Books/V2/AI_Literacy_PartI_Ch5_v3.md",
-            "Books/V2/AI_Literacy_PartI_Ch6_v2.md",
-            "Books/V2/AI_Literacy_PartI_Ch7_v2.md"
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Ch1.md",
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Ch2.md",
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Ch3.md",
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Ch4.md",
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Ch5.md",
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Ch6.md",
+            "Books/AI-Literacy-Foundations/AI_Literacy_Foundations_Ch7.md"
           ],
           "chapterOffset": 0,
-          "titleExcludes": ["AI 素养与 AI 原生工作基础", "给中文使用者的 AI 原生工作手册", "给中文使用者的 AI 原生工作手册 V2"]
+          "titleExcludes": [
+            "AI 素养基础",
+            "AI Literacy Foundations"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ai-native-work-foundations",
+      "title": "AI 原生工作基础",
+      "author": "刘晃（Alex Liu）",
+      "kicker": "AI-Native Work Foundations",
+      "description": "接在《AI 素养基础》之后，讨论个人、团队和组织如何把 AI 变成真正的工作方式。",
+      "singleOutput": "downloads/ai-native-work-foundations.html",
+      "pdfOutput": "downloads/ai-native-work-foundations.pdf",
+      "sources": [
+        {
+          "part": "开篇",
+          "files": [
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Introduction.md"
+          ],
+          "chapterOffset": -1,
+          "titleExcludes": [
+            "AI 原生工作基础",
+            "AI-Native Work Foundations"
+          ]
         },
         {
-          "part": "Part II - AI 原生组织协作基础",
+          "part": "正文",
           "files": [
-            "Books/V2/AI_Literacy_PartII_Ch1.md",
-            "Books/V2/AI_Literacy_PartII_Ch2.md",
-            "Books/V2/AI_Literacy_PartII_Ch3.md",
-            "Books/V2/AI_Literacy_PartII_Ch4.md",
-            "Books/V2/AI_Literacy_PartII_Ch5.md",
-            "Books/V2/AI_Literacy_PartII_Ch6.md",
-            "Books/V2/AI_Literacy_PartII_Ch7.md",
-            "Books/V2/AI_Literacy_PartII_Ch8.md",
-            "Books/V2/AI_Literacy_PartII_Ch9.md",
-            "Books/V2/AI_Literacy_PartII_Ch10.md"
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch1.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch2.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch3.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch4.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch5.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch6.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch7.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch8.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch9.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Ch10.md"
           ],
-          "chapterOffset": 7,
-          "titleExcludes": ["AI 原生组织协作基础", "Part II"]
+          "chapterOffset": 0,
+          "titleExcludes": [
+            "AI 原生工作基础",
+            "AI-Native Work Foundations",
+            "Part II",
+            "AI 原生组织协作基础"
+          ]
         },
         {
           "part": "附录",
           "files": [
-            "Books/V2/AI_Literacy_Appendix_A.md",
-            "Books/V2/AI_Literacy_Appendix_B.md",
-            "Books/V2/AI_Literacy_Appendix_C.md",
-            "Books/V2/AI_Literacy_Appendix_D.md"
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Appendix_A.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Appendix_B.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Appendix_C.md",
+            "Books/AI-Native-Work-Foundations/AI_Native_Work_Foundations_Appendix_D.md"
           ],
-          "chapterOffset": 17
+          "chapterOffset": 10,
+          "titleExcludes": [
+            "AI 原生工作基础",
+            "AI-Native Work Foundations"
+          ]
         }
       ]
     },
@@ -78,7 +117,9 @@
             "Books/Translate/Founders_Playbook_Ch5_Resources.zh.md"
           ],
           "chapterOffset": 0,
-          "titleExcludes": ["创始人手册：构建 AI 原生创业公司"]
+          "titleExcludes": [
+            "创始人手册：构建 AI 原生创业公司"
+          ]
         }
       ]
     },
@@ -109,7 +150,10 @@
             "Books/Finance/Finance_AI_Playbook_Ch6.md"
           ],
           "chapterOffset": 0,
-          "titleExcludes": ["Finance AI Playbook", "财务部门的 AI 转型实战手册"]
+          "titleExcludes": [
+            "Finance AI Playbook",
+            "财务部门的 AI 转型实战手册"
+          ]
         }
       ]
     }

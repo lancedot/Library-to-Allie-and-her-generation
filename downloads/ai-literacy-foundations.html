@@ -1,0 +1,1817 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 素养基础</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f5ef;
+      --panel: #fffdf8;
+      --panel-strong: #ffffff;
+      --text: #24211b;
+      --muted: #746d60;
+      --line: #ded7c8;
+      --accent: #206a5d;
+      --accent-soft: #e3f1eb;
+      --mark: #fff1a8;
+      --shadow: 0 18px 50px rgba(57, 45, 27, 0.12);
+      --reader-width: 760px;
+      --font-size: 19px;
+      --line-height: 1.88;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #151515;
+      --panel: #202020;
+      --panel-strong: #262626;
+      --text: #eee9de;
+      --muted: #aaa294;
+      --line: #393734;
+      --accent: #7bc8b6;
+      --accent-soft: #17332d;
+      --mark: #6a5818;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    body[data-view="home"] .app,
+    body[data-view="bookstore"] .app,
+    body[data-view="about"] .app {
+      grid-template-columns: 1fr;
+    }
+
+    body[data-view="home"] .sidebar,
+    body[data-view="bookstore"] .sidebar,
+    body[data-view="about"] .sidebar,
+    body[data-view="home"] .topbar,
+    body[data-view="bookstore"] .topbar,
+    body[data-view="about"] .topbar {
+      display: none;
+    }
+
+    .public-nav {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 42px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 8;
+    }
+
+    body[data-view="home"] .public-nav,
+    body[data-view="bookstore"] .public-nav,
+    body[data-view="about"] .public-nav {
+      display: flex;
+    }
+
+    .public-brand {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .public-nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .public-nav .text-button.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px 18px;
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+      overflow: auto;
+    }
+
+    .brand {
+      margin: 0 0 16px;
+      font-size: 20px;
+      line-height: 1.35;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .book-picker {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .book-select {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--text);
+      outline: none;
+      font-weight: 800;
+    }
+
+    .book-description {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .site-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .site-nav .text-button {
+      width: 100%;
+    }
+
+    .site-nav .active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    body.single-book .site-nav,
+    body.single-book .book-picker,
+    body.single-book .import-tools {
+      display: none !important;
+    }
+
+    .import-tools {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .drop-zone {
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      margin-bottom: 14px;
+    }
+
+    .search {
+      width: 100%;
+      min-height: 40px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .part-title {
+      margin: 18px 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .chapter-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .chapter-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .chapter-button:hover,
+    .chapter-button.active {
+      background: var(--accent-soft);
+    }
+
+    .chapter-num {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .chapter-name {
+      min-width: 0;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .chapter-meta {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      padding: 10px 26px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(16px);
+    }
+
+    .current-title {
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .icon-button,
+    .text-button {
+      min-width: 40px;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .icon-button {
+      padding: 0;
+      font-size: 18px;
+    }
+
+    .icon-button:hover,
+    .text-button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .progress-wrap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      height: 3px;
+      background: transparent;
+    }
+
+    .progress {
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width 120ms linear;
+    }
+
+    .reader-shell {
+      padding: 44px 28px 70px;
+    }
+
+    body[data-view="home"] .reader-shell,
+    body[data-view="bookstore"] .reader-shell,
+    body[data-view="about"] .reader-shell {
+      padding: 60px 46px 70px;
+    }
+
+    .reader {
+      width: min(var(--reader-width), 100%);
+      margin: 0 auto;
+      padding: 54px 58px 64px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    body[data-view="home"] .reader,
+    body[data-view="bookstore"] .reader,
+    body[data-view="about"] .reader {
+      width: min(1120px, 100%);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    body[data-view="home"] .search-row,
+    body[data-view="home"] #toc,
+    body[data-view="home"] .notes-panel,
+    body[data-view="bookstore"] .search-row,
+    body[data-view="bookstore"] #toc,
+    body[data-view="bookstore"] .notes-panel,
+    body[data-view="about"] .search-row,
+    body[data-view="about"] #toc {
+      display: none;
+    }
+
+    .article-meta {
+      margin-bottom: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .content {
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Serif CJK SC", serif;
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      word-break: break-word;
+    }
+
+    .content h1,
+    .content h2,
+    .content h3 {
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .content h1 {
+      margin: 0 0 28px;
+      font-size: 34px;
+    }
+
+    .content h2 {
+      margin: 44px 0 16px;
+      font-size: 25px;
+      border-top: 1px solid var(--line);
+      padding-top: 30px;
+    }
+
+    .content h3 {
+      margin: 28px 0 10px;
+      font-size: 20px;
+    }
+
+    .content p {
+      margin: 14px 0;
+    }
+
+    .content blockquote {
+      margin: 24px 0;
+      padding: 14px 18px;
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .content hr {
+      margin: 34px 0;
+      border: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .content ul,
+    .content ol {
+      padding-left: 1.4em;
+    }
+
+    .content table {
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-size: 0.92em;
+      line-height: 1.55;
+    }
+
+    .content th,
+    .content td {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .content th {
+      background: var(--accent-soft);
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .content mark {
+      background: var(--mark);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+
+    .content pre {
+      margin: 24px 0;
+      padding: 16px 18px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      font-family: "Consolas", "Microsoft YaHei", monospace;
+      font-size: 0.86em;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .home-kicker {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .home-title {
+      margin: 0 0 22px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-size: 52px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .home-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 36px;
+      align-items: center;
+      min-height: min(660px, calc(100vh - 150px));
+    }
+
+    .home-copy {
+      min-width: 0;
+    }
+
+    .home-lede {
+      max-width: 680px;
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 21px;
+      line-height: 1.75;
+    }
+
+    .home-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 24px 0 34px;
+    }
+
+    .book-shelf {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 18px;
+      align-self: stretch;
+      align-content: center;
+    }
+
+    .bookstore-title {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .bookstore-lede {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .book-cover {
+      position: relative;
+      display: grid;
+      align-content: space-between;
+      min-height: 330px;
+      padding: 34px 30px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 92%, var(--accent-soft)), var(--panel-strong));
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .book-cover::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .book-cover:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+
+    .cover-kicker {
+      position: relative;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .cover-title {
+      position: relative;
+      display: block;
+      margin: 46px 0 18px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-size: 34px;
+      line-height: 1.22;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .cover-subtitle {
+      position: relative;
+      display: block;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .cover-footer {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: end;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .source-list a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .source-list a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      width: min(var(--reader-width), 100%);
+      margin: 18px auto 0;
+    }
+
+    .nav-card {
+      min-height: 76px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav-card[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .nav-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .nav-title {
+      margin-top: 6px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .note-highlight {
+      background: color-mix(in srgb, var(--mark) 75%, var(--accent-soft));
+      border-bottom: 2px solid var(--accent);
+      cursor: pointer;
+    }
+
+    .selection-popup {
+      position: fixed;
+      z-index: 30;
+      width: min(360px, calc(100vw - 24px));
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+      display: none;
+      gap: 10px;
+    }
+
+    .selection-popup.open {
+      display: grid;
+    }
+
+    .selection-popup-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .selection-popup-title {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .popup-close {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .popup-close:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .selected-preview {
+      max-height: 72px;
+      overflow: auto;
+      padding: 9px 10px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .note-input {
+      width: 100%;
+      min-height: 88px;
+      resize: vertical;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      line-height: 1.5;
+    }
+
+    .popup-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .text-button[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      color: var(--muted);
+      border-color: var(--line);
+    }
+
+    .notes-panel {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .notes-title {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .note-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .note-item {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .note-quote {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .note-text {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 20;
+        width: min(84vw, 330px);
+        transform: translateX(-105%);
+        transition: transform 180ms ease;
+        box-shadow: var(--shadow);
+      }
+
+      body.menu-open .sidebar {
+        transform: translateX(0);
+      }
+
+      .mobile-menu {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .topbar {
+        padding: 10px 12px;
+      }
+
+      .reader-shell {
+        padding: 20px 12px 46px;
+      }
+
+      body[data-view="home"] .reader-shell,
+      body[data-view="bookstore"] .reader-shell,
+      body[data-view="about"] .reader-shell {
+        padding: 24px 16px 46px;
+      }
+
+      .reader {
+        padding: 30px 20px 42px;
+      }
+
+      .content h1 {
+        font-size: 28px;
+      }
+
+      .content h2 {
+        font-size: 22px;
+      }
+
+      .home-title {
+        font-size: 34px;
+      }
+
+      .home-lede {
+        font-size: 18px;
+      }
+
+      .home-layout {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        gap: 28px;
+      }
+
+      .public-nav {
+        padding: 14px 14px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .public-nav-links {
+        width: 100%;
+      }
+
+      .public-nav .text-button {
+        flex: 1;
+      }
+
+      .book-shelf {
+        grid-template-columns: 1fr;
+      }
+
+      .book-cover {
+        min-height: 300px;
+      }
+
+      .selection-popup {
+        left: 12px !important;
+        right: 12px;
+        bottom: 12px;
+        top: auto !important;
+        width: auto;
+      }
+
+      .footer-nav {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
+  <nav class="public-nav" aria-label="站点导航">
+    <div class="public-brand">Library to Allie and her generation</div>
+    <div class="public-nav-links">
+      <button class="text-button" id="publicHomeButton" type="button">首页</button>
+      <button class="text-button" id="publicBookstoreButton" type="button">书城</button>
+      <button class="text-button" id="publicAboutButton" type="button">关于</button>
+    </div>
+  </nav>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <h1 class="brand" id="libraryTitle">AI 素养基础</h1>
+      <div class="site-nav">
+        <button class="text-button" id="homeButton" type="button">首页</button>
+        <button class="text-button" id="bookstoreButton" type="button">书城</button>
+        <button class="text-button" id="aboutButton" type="button">关于</button>
+      </div>
+      <div class="book-picker" id="bookPicker">
+        <select class="book-select" id="bookSelect" aria-label="选择书籍"></select>
+        <div class="book-description" id="bookDescription"></div>
+      </div>
+      <div class="import-tools" id="importTools">
+        <button class="text-button" id="importButton" type="button">导入 MD 成书</button>
+        <input class="hidden-input" id="fileInput" type="file" accept=".md,text/markdown,text/plain" multiple>
+        <div class="drop-zone" id="dropZone">拖一批 Markdown 到这里</div>
+      </div>
+      <div class="search-row">
+        <input class="search" id="search" type="search" placeholder="搜索章节或正文" autocomplete="off">
+      </div>
+      <nav id="toc" aria-label="章节目录"></nav>
+      <section class="notes-panel" aria-label="批注">
+        <h2 class="notes-title">批注</h2>
+        <div class="note-list" id="noteList"></div>
+      </section>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="menuButton" title="目录" aria-label="目录">☰</button>
+        <div class="current-title" id="currentTitle"></div>
+        <div class="toolbar">
+          <button class="icon-button" id="decreaseFont" title="减小字号" aria-label="减小字号">A-</button>
+          <button class="icon-button" id="increaseFont" title="增大字号" aria-label="增大字号">A+</button>
+          <button class="text-button" id="notesButton">批注</button>
+          <button class="text-button" id="themeButton">深色</button>
+        </div>
+      </header>
+      <section class="reader-shell">
+        <article class="reader">
+          <div class="article-meta" id="articleMeta"></div>
+          <div class="content" id="content"></div>
+        </article>
+        <div class="footer-nav" id="footerNav">
+          <button class="nav-card" id="prevButton"></button>
+          <button class="nav-card" id="nextButton"></button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="selection-popup" id="selectionPopup">
+    <div class="selection-popup-head">
+      <p class="selection-popup-title">添加批注</p>
+      <button class="popup-close" id="cancelNoteButton" type="button" aria-label="取消批注">×</button>
+    </div>
+    <div class="selected-preview" id="selectedPreview"></div>
+    <textarea class="note-input" id="noteInput" placeholder="写下这句话旁边的想法"></textarea>
+    <div class="popup-actions">
+      <button class="text-button" id="cancelNoteTextButton" type="button">取消</button>
+      <button class="text-button" id="saveNoteButton" type="button" disabled>保存</button>
+    </div>
+  </div>
+
+  <script id="library-data" type="application/json">{"title":"AI 素养基础","authorTools":false,"singleBook":true,"books":[{"id":"ai-literacy-foundations","title":"AI 素养基础","author":"刘晃（Alex Liu）","description":"写给 Allie 和她这一代人的 AI 素养基础读本：先建立对 AI 的清醒直觉，再学习如何安全、有效地协作。","singleOutput":"downloads/ai-literacy-foundations.html","chapters":[{"id":"ai-literacy-foundations-part-1-1","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Preface.md","partKey":"part-1","partTitle":"开篇","chapterInPart":1,"globalChapter":-1,"numberLabel":"序","metaLabel":"序言","title":"序言：半桶水，愿意晃","markdown":"# 序言：半桶水，愿意晃\n\n我不是 AI 专家。\n\n我没有计算机科学的学位，没有在科技公司工作过，没有发表过任何关于人工智能的学术论文。\n\n我是一个有财务背景的人，在这个 AI 快速渗透进每一个行业、每一种工作方式的时代，试图搞清楚：这件事到底是什么，我该怎么对待它，我身边的人又该怎么对待它。\n\n用一句话来形容我写这本书时的状态：**半桶水，但愿意晃。**\n\n---\n\n半桶水，意味着我知道自己的局限。\n\n这本书里有些地方，我没有办法给你最权威的答案。有些技术细节，我选择了用\"足够准确但不过分复杂\"的方式来描述，而不是追求百分之百的精确——因为我认为对大多数读者来说，建立正确的直觉，比理解每一个技术细节更重要。\n\n有些判断，是我在当下做出的最好判断，但 AI 领域变化极快，这本书写于2026年，你读到这里时，有些具体的工具和能力描述可能已经过时了。\n\n这些，都是这本书的局限。我不打算掩盖它们。\n\n---\n\n但我愿意晃。\n\n因为我观察到一件事：在 AI 这个领域，讲话的人，要么是深度的技术专家（他们说的东西很多人听不懂），要么是彻底的反对者（他们的担忧有时候有道理，但往往走向了另一个极端）。\n\n中间那一大批普通人——他们有自己的工作，有自己的团队，每天在用或者在考虑用 AI，但不知道该怎么想、怎么判断、怎么安全地用——他们需要的声音，不多。\n\n我是那批普通人里的一员。所以我决定把自己摸索的过程，整理成这本书。\n\n不是为了装作我比别人知道得多，而是为了把我觉得有用的东西，分享给和我一样正在摸索的人。\n\n如果这本书能让你对 AI 少一些迷茫，多一些清醒的判断——哪怕只是一件事——那这本书就值了。\n\n---\n\n这本书还有另一个身份，我想直接说出来：\n\n**它是用 AI 写的，也是写给 AI 时代的人的。**\n\n这本书的每一章，都是我和 Claude 一起完成的。我提供框架、判断、反馈、校准——Claude 提供初稿、结构、语言。我们来回推敲，有时候我否定它的方向，有时候它的视角让我改变了自己的想法。\n\n这个过程本身，就是这本书想描述的那种\"人机协作\"。\n\n我刻意没有把这件事藏起来，因为我认为透明是 AI 时代的基本诚信。AI 参与了这本书的创作，你有权利知道这一点。\n\n同时，这本书里的每一个判断、每一个观点、每一处\"我觉得这样说更准确\"或者\"这个方向不对，换一种方式\"——都是我做的。AI 是工具，笔在我手里。\n\n---\n\n最后，我想说一句让我自己在写这本书时一直记住的话：\n\n**这不是给今天的终点，而是给明天的垫脚石。**\n\nAI 在快速演进，十年后回头看，这本书描述的很多东西可能会显得很初级。但每一代人，都需要从那个时代的\"初级\"开始。\n\n如果这本书，能成为下一代 AI-native 的人成长路上的一块垫脚石——让他们在某个时刻踩着它，看得更远一点——那就是我写这本书最希望留下的东西。\n\n半桶水，晃出来的声音，但也是真实的声音。\n\n希望你听得见。\n\n**Alex Liu**\n2026年\n\n\n\n---\n","wordCount":1174},{"id":"ai-literacy-foundations-part-1-2","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Introduction.md","partKey":"part-1","partTitle":"开篇","chapterInPart":2,"globalChapter":0,"numberLabel":"引","metaLabel":"引言","title":"引言：为什么每个人都需要 AI 素养","markdown":"# 引言：为什么每个人都需要 AI 素养\n\n## 一个正在发生的分裂\n\n2026年，有两种人。\n\n第一种人，每天在用 AI——写邮件、整理资料、分析数据、生成报告。他们不一定理解 AI 是什么，不一定知道它的局限在哪里，但他们在用，而且越用越顺手。\n\n第二种人，还没有开始用——要么觉得 AI 太复杂，要么觉得自己不需要，要么觉得这东西不可靠，要么就是还没有遇到一个合适的入口。\n\n这两种人之间，正在形成一条越来越宽的鸿沟。\n\n不是\"会不会用电脑\"那种代际鸿沟，而是一种新的鸿沟：**同样有能力的两个人，一个配备了 AI 协作能力，一个没有——他们在单位时间内能完成的工作量、能触达的信息深度、能产生的输出质量，开始出现系统性的差距。**\n\n这本书，是为那些想跨越这条鸿沟的人写的。\n\n---\n\n## 但\"会用 AI\"不等于\"有 AI 素养\"\n\n这里有一个需要说清楚的区分。\n\n\"会用 AI\"，是一种操作能力——知道怎么打开 ChatGPT，知道怎么输入问题，知道怎么复制结果。\n\n\"有 AI 素养\"，是一种更深层的能力——理解 AI 是什么、不是什么；知道什么时候该用、什么时候不该用；能判断 AI 输出的质量；知道如何安全地使用；能在组织里系统性地应用。\n\n两者的差距，用一个比喻来说：\n\n\"会用 AI\"就像会开车——知道踩油门和刹车，能从A点到B点。\n\n\"有 AI 素养\"就像懂得安全驾驶——知道什么路况需要减速，知道疲劳驾驶的风险，知道保险买什么，知道出了事故该怎么处理。\n\n没有 AI 素养，只是会用 AI，在某些情况下，可能比不用 AI 还危险。\n\n---\n\n## 这本书覆盖的范围\n\n这本书是这个系列的第一册，聚焦一件事：普通人需要具备的 AI 素养。\n\n它面向所有人，不需要技术背景，不需要职场经验。只要你在日常生活里接触过或者考虑使用 AI，就能读懂。\n\n这本书回答的问题是：AI 到底是什么、它能做什么、不能做什么、如何安全地使用、如何有效地和它沟通、如何验证它的输出，以及它正在如何改变我们的工作和社会。\n\n如果你读完这本书，还想继续了解 AI 如何进入团队、组织和真实工作流，第二册《AI 原生工作基础》会接着往下讲。\n\n---\n\n## 一件你读这本书之前需要知道的事\n\n这本书描述的，是2026年中期的 AI 能力和生态。\n\nAI 在快速进化。具体的工具、具体的能力边界、具体的监管要求，都在持续变化。\n\n但这本书试图传递的东西——如何建立正确的认知框架、如何批判性地看待 AI 的输出、如何安全有效地和 AI 协作——这些不会因为模型迭代而过时。\n\n工具会变，思考方式不会。\n\n带着这个前提，开始读吧。\n\n---\n\n## 读这本书的方式\n\n**如果你是个人读者：**\n按顺序读。每章结尾有一张\"本章要点卡\"和一个\"可以做的事\"清单——建议你在进入下一章之前，至少把清单里的一件事做一遍。知道和会做，是两件事。\n\n**如果你是管理者或者团队负责人：**\n先快速读完这本书，建立基础认知；然后继续读第二册《AI 原生工作基础》，重点看结构化 AI 工作流、人工监督与责任边界、AI 治理和组织文化。\n\n**如果你正在为团队选择 AI 工具：**\n可以先读完这本书的安全、协作和验证章节，再去第二册看工具指南和企业选型的避坑清单。\n\n**读完这本书之后：**\n找一个你日常会遇到的小任务，试着用书里的方法和 AI 协作一次，再观察：它帮到了哪里，又在哪些地方需要你来判断。\n\n---\n\n好，开始。\n\n\n\n---\n","wordCount":1328},{"id":"ai-literacy-foundations-part-2-1","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Ch1.md","partKey":"part-2","partTitle":"正文","chapterInPart":1,"globalChapter":1,"numberLabel":"","metaLabel":"","title":"第一章：AI 到底是什么","markdown":"# 第一章：AI 到底是什么\n\n> 读完这章，你会明白一件事：AI 看起来像很多东西，但它其实是一种你从未见过的新东西。\n\n---\n\n## 你可能遇到过这些时刻\n\n问过 AI\"今天北京天气怎么样\"，它给你的是一个模糊的、不知道是哪天的答案？\n\n问过它\"最近有什么新闻\"，它说不太确定，或者给你讲了一件去年的事？\n\n或者反过来——你问了一个挺难的问题，它回答得头头是道，你心想\"真厉害\"。结果下一次，你问了一个看起来更简单的问题，它却一本正经地给你编了一个根本不存在的数据，或者把两件完全不相关的事混在一起说。\n\n你困惑了：**这东西到底是聪明还是笨？**\n\n这个困惑，几乎每个开始用 AI 的人都有过。\n\n答案是：**它既不聪明，也不笨。它是一种你从来没见过的东西——而我们习惯用\"聪明/笨\"这把尺子，去量一把完全不同形状的东西。**\n\n这一章，我们就来搞清楚：AI 到底是什么。\n\n---\n\n## 它不是在帮你\"查\"东西\n\n你有没有用 AI 问过类似\"今天股市怎么样\"或者\"最近有什么新闻\"这类问题，然后发现它要么说不知道，要么给你一个过时的信息？\n\n这不是 AI 坏掉了。\n\n原因是：**AI 根本没有在帮你查任何地方。**\n\n搜索引擎做的事，是在互联网上找到已经存在的内容，然后把链接给你。你问百度\"北京天气\"，百度是真的去查了一下——它找到了气象局的数据，把结果显示给你。\n\nAI 做的事情完全不同。它没有在查任何地方。它做的事情，更像是这样：\n\n> 想象一个人，从小到大读了几十亿本书、几千亿篇文章——新闻、教材、小说、对话记录、技术文档……几乎人类写过的所有东西。读完之后，他把书全还回去了，但他的脑子里留下了这一切的\"印记\"。\n>\n> 现在你问他问题，他不是去查书——他是凭这个\"印记\"来回答你。\n\n这就是为什么他知道\"量子力学是什么\"，却不知道\"今天的天气\"——因为今天的天气，他读书的时候还没发生。\n\nAI 不是搜索引擎。它是一个读过海量文字、然后凭记忆和你对话的系统。\n\n---\n\n## 它不是一个装着答案的\"数据库\"\n\n有些人觉得：AI 肯定是有一个超级大的数据库，里面存着所有问题的标准答案，你一问它就去查那个库。\n\n不是这样的。\n\n数据库是什么？是把东西整整齐齐地存起来。你查身份证信息，它精确地返回那一条记录，一个字不差。\n\nAI 没有这样的\"答案库\"。它知道的所有东西，都已经在训练过程中变成了模型内部的一种\"模式\"——不是一条一条存着的文字，而是一种对语言规律的\"感觉\"。\n\n这就是为什么 AI 有时候记得住大方向，却说错细节。\n\n就像你记得某部电影的故事大概是什么，但你背不出其中某个角色的台词一个字不差——但如果你硬要背，你可能会\"凭感觉\"说出一句听起来像那个角色会说的话，但其实原话不是这样的。\n\nAI 也会这样。它会\"凭感觉\"生成一个听起来对的答案，但那个答案不一定真的对。\n\n---\n\n## 它不\"理解\"你说的话——至少不是你以为的那种理解\n\n这一点是最容易被忽视的，也是最重要的。\n\nAI 在语言上表现得非常流畅，以至于我们很容易觉得它\"懂\"我们在说什么。\n\n但它对世界的认识，是通过文字学来的，不是通过经历活出来的。\n\n举个例子：AI 知道\"火会烫人\"，是因为无数文章里这么写过——不是因为它被烫过。它知道\"失去亲人很痛苦\"，是因为人类写过太多关于悲伤的文字——不是因为它有情感。\n\n这不是说 AI 没用，而是说：**它活在语言的世界里，不在我们生活的现实世界里。**\n\n有一个很实际的后果：\n\n你问 AI \"我现在应该去哪家医院\"，它可能给你一个听起来合理的答案——但它不知道你在哪个城市、你的医保在哪里报销、哪家医院今天有没有专家门诊。它只是在用语言模式，生成一个\"通常情况下合理的回答\"。\n\n所以在涉及你自己的具体情况时，AI 的回答只能是参考，不能是决定。\n\n---\n\n## 那它到底是什么？\n\n说了这么多\"不是\"，AI 到底是什么？\n\n用一句话说：\n\n**AI 是一个概率性的文字生成系统。**\n\n这句话拆开来：\n\n**\"概率性\"** —— AI 每次说的话，都是在预测\"接下来最可能出现什么文字\"。它不是在查找答案，不是在推理真相，而是在做一种极其复杂的预测。\n\n**\"文字生成\"** —— AI 的本质工作就是生成文字。这个过程本身，不等于理解，不等于事实，也不等于判断。\n\n这也解释了为什么 AI 有时候看起来那么厉害——因为它见过的文字多得惊人，预测能力极强。但它的能力边界，始终是\"生成听起来合理的文字\"，而不是\"保证说出来的都是事实\"。\n\n---\n\n## 为什么 AI 有时候会胡说八道？\n\n这个现象有个名字，叫**幻觉（Hallucination）**。\n\n很多人第一次听到这个词，觉得是个 bug，等 AI 进化了就会修好。\n\n其实不完全是这样。\n\n幻觉来自 AI 的工作方式本身——它的目标是生成\"流畅的、符合上下文的文字\"，而不是\"只说自己确定的事情\"。当它对某个问题没有足够的训练数据，或者问题超出了它的知识范围，它不会停下来说\"我不知道\"——它会继续生成，填补空白，有时候填出来的就是错的。\n\n一个帮你记住这件事的比喻：\n\n想象一个非常健谈的人，就算某段内容记不清了，也会流畅地讲下去，中间穿插一些听起来合理的细节。你事后查资料才发现：那几个\"细节\"其实是他临场发挥的。\n\nAI 就是这样一个\"永远不会卡顿\"的讲述者。\n\n好消息是：2026年的 AI 在表达不确定时，已经比早期模型诚实得多——它会更主动地说\"我不太确定这个\"。但这个机制并不完美，幻觉依然存在，在涉及具体事实、数字、来源的地方尤其需要小心。\n\n---\n\n## 去神化，也去妖魔化\n\n我们正处在一个 AI 叙事容易走极端的时代。\n\n一端是神化：什么都问 AI，把它的每一个回答都当成权威，不加验证就直接用。\n\n另一端是妖魔化：觉得 AI 是骗局，充满危险，完全拒绝碰它。\n\n两种态度都会让你吃亏。\n\n神化，会让你在 AI 说错的时候付出代价。\n\n妖魔化，会让你错过一个正在深刻改变工作方式的工具。\n\n正确的姿态是：**理解它是什么、能做什么、不能做什么，然后有策略地使用它。**\n\n这，就是 AI 素养的起点。\n\n---\n\n## 本章要点卡\n\n📌 **记住这三件事：**\n\n1. AI 不是搜索引擎——它不帮你\"查\"，它凭\"记忆\"生成回答\n2. AI 的回答是预测，不是事实——流畅不等于正确\n3. AI 活在语言世界里——它不了解你的具体处境\n\n---\n\n✅ **读完这章，你可以做的事：**\n\n- [ ] 下次用 AI 之前，先问自己：我是要它帮我\"查\"，还是帮我\"想\"？如果是\"查\"，用搜索引擎更可靠\n- [ ] 当 AI 给你一个具体的数字或事实，养成习惯：重要的信息，独立核实一下\n- [ ] 和身边还在\"神化\"或\"妖魔化\" AI 的朋友，聊聊这章里的任何一个比喻\n\n---\n\n*下一章：AI 擅长什么——找到它真正的价值区间*\n\n\n---\n","wordCount":2645},{"id":"ai-literacy-foundations-part-2-2","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Ch2.md","partKey":"part-2","partTitle":"正文","chapterInPart":2,"globalChapter":2,"numberLabel":"","metaLabel":"","title":"第二章：AI 擅长什么","markdown":"# 第二章：AI 擅长什么\n\n> 读完这章，你会找到 AI 真正值得你用的地方——不是什么都能做，但做对了事，效率差距巨大。\n\n---\n\n## 你可能有过这种感觉\n\n朋友说 AI 很厉害，你试了一下，让它查今天的新闻——它不知道。\n让它帮你算一笔账——算错了。\n让它推荐一家你家附近的餐厅——推荐了一家已经关门的。\n\n然后你得出结论：\"AI 也没那么厉害嘛。\"\n\n这个结论不完全对。更准确的说法是：**你用它做了它不擅长的事。**\n\nAI 不是万能的，但在某些事情上，它的效率高得惊人。找到那些事情，是这一章的目标。\n\n---\n\n## 先说一件2026年必须知道的事\n\n两年前，谈 AI 能做什么，答案相对固定：它只能用语言回答你，数字算不准，实时信息不知道。\n\n现在不一样了。\n\n2026年的主流 AI，大多数都配备了工具调用能力——需要计算时调用计算器，需要查实时信息时调用搜索，需要处理文件时直接读取分析。\n\n所以\"AI 能做什么\"这个问题，准确的问法是：**你用的这个 AI，配备了哪些工具？**\n\n带着这个认知，我们来看 AI 真正擅长的事。\n\n---\n\n## AI 最擅长的七件事\n\n### 第一件：把长的变短\n\n你有一份50页的报告要读，但你只有10分钟。\n你开完一个小时的会议，需要整理成一页纸的会议纪要。\n你收到十封邮件，想知道哪封最重要。\n\n这类任务，AI 做得又快又稳。\n\n为什么？因为\"把长的变短、把复杂的变简单\"，本质上是一种语言重构任务——正是语言模型最擅长的事。\n\n**在中国职场最常用的场景：**\n把冗长的微信群消息记录整理成结论、把领导发来的长文件提炼成三个重点、把行业报告压缩成一段可以直接汇报的文字。\n\n---\n\n### 第二件：帮你写第一稿\n\n面对空白文档发呆，是很多人最真实的职场体验。\n\n不知道怎么开口的邮件、不知道怎么起头的方案、不知道怎么措辞的通知——这些\"从零开始\"的任务，AI 可以在几秒内给你一个可以继续改的初稿。\n\n**关键认知：** AI 给你的是初稿，不是终稿。它的价值是帮你跨过\"空白页恐惧\"，从零到有。从有到好，还需要你来。\n\n**常见场景：**\n- 给客户写一封措辞需要拿捏的邮件\n- 写一份项目提案的框架\n- 起草一则员工通知\n\n---\n\n### 第三件：改写和润色\n\n同样的意思，你可能表达得太直接、太口语、或者太啰嗦。AI 可以帮你换一种表达。\n\n**最实用的几个场景：**\n- 把一封语气太生硬的投诉邮件，改得专业但不失立场\n- 把中式英语写的邮件，润色成地道的商务英语\n- 把技术部门写的文档，翻译成业务部门能看懂的语言\n\n**注意一点：** AI 改的是形式，核心意思需要你来把关。改完之后通读一遍，确认\"这还是我想说的\"。\n\n---\n\n### 第四件：帮你想更多可能性\n\n当你脑子里只有一个方案，或者想破头也想不出新角度时，AI 是一个很好的思维伙伴。\n\n它没有你的职场包袱，不怕\"这个想法会不会被笑话\"，可以在几秒内抛出十个方向——哪怕有几个听起来不靠谱，但其中可能有一个你没想到的角度。\n\n**实用方式：**\n- \"这个问题还有哪些我没考虑到的角度？\"\n- \"如果我是客户，我会提出哪些反对意见？\"\n- \"帮我想五个不同风格的方案名称\"\n\n它帮你把选项从3个扩展到15个。从15个里选最好的那个，还是你来。\n\n---\n\n### 第五件：把复杂的说简单\n\n你看不懂一份合同条款、一份技术文档、一段法律条文——让 AI 用普通话解释给你听。\n\n这是 AI 一个非常实用但经常被低估的能力。\n\n**在中国的常用场景：**\n- \"这份劳动合同里的竞业限制条款，实际上在要求我做什么？\"\n- \"这个医院的检查报告，指标偏高是什么意思？\"\n- \"这个 App 的隐私政策，我实际上同意了什么？\"\n\n**一个小技巧：** 你可以指定解释的对象。\"用我爸爸能听懂的方式解释\"和\"用有法律背景的人熟悉的方式解释\"，会得到完全不同但各自准确的结果。\n\n注意：AI 的解释是帮助你理解，涉及重要决策（签合同、做医疗决定）还是要找专业人士确认。\n\n---\n\n### 第六件：翻译\n\n这是 AI 最成熟的能力之一，而且2026年的翻译质量已经大幅超越早期机器翻译。\n\n日常商务邮件、内部文件、会议记录的翻译——质量已经足够高，可以直接使用或稍作修改。\n\n真正需要专业人工审核的，是法律合同、医疗文件这类语言细节影响实质权益的场景。\n\n---\n\n### 第七件：整理和分类\n\n把一堆乱的东西，整理成有结构的形式。\n\n**常用场景：**\n- 把客户反馈按主题分类汇总\n- 把散落在各个地方的信息整合成一份报告\n- 把会议上讨论的事情整理成带负责人和截止时间的任务清单\n\n---\n\n## 一句话记住这一章\n\n> **AI 擅长语言层面的任务：把长的变短、帮你起草、改写润色、扩展思路、解释复杂的、翻译、整理归类。**\n>\n> **判断一个任务适不适合给 AI：这是在处理语言，还是在查找事实？前者给 AI，后者用搜索或专业来源。**\n\n---\n\n## 📌 本章要点卡\n\n1. AI 擅长的核心是**语言层面的任务**——生成、转化、整合、解释\n2. 2026年配有工具的 AI，还能处理计算和实时信息——但先确认你用的 AI 有没有这些工具\n3. AI 的价值是帮你**从零到有**——起点加速，不是替代你的判断\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 想出你工作里**一件重复性的语言任务**（写周报、整理会议记录、改邮件），今天试着让 AI 帮你做一次\n- [ ] 下次让 AI 生成内容后，通读一遍，找出至少**一处需要你修改**的地方——养成\"AI起草，我来把关\"的习惯\n- [ ] 下次遇到看不懂的文件或条款，试试让 AI 用普通话解释给你听\n\n---\n\n*下一章：AI 不擅长什么——在你开始依赖它之前，必须知道的边界*\n\n\n---\n","wordCount":2205},{"id":"ai-literacy-foundations-part-2-3","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Ch3.md","partKey":"part-2","partTitle":"正文","chapterInPart":3,"globalChapter":3,"numberLabel":"","metaLabel":"","title":"第三章：AI 不擅长什么","markdown":"# 第三章：AI 不擅长什么\n\n> 读完这章，你会知道什么时候必须踩刹车——不是不让你用 AI，而是让你用得更安全。\n\n---\n\n## 为什么这章很重要\n\nAI 说错话的时候，和它说对话的时候，语气完全一样。\n\n它不会结巴，不会停顿，不会说\"呃……这个我不太确定\"。它会用同样流畅、同样自信的方式，给你一个错误的答案。\n\n这才是真正需要警惕的地方。\n\n不了解 AI 的局限，你就没有办法在对的时候踩刹车。\n\n---\n\n## 先做一个重要区分\n\n在说具体局限之前，我们需要区分两种性质完全不同的\"做不到\"：\n\n**第一种：配置问题。** 不是 AI 本身不能做，是你用的那个 AI 没有配备对应的工具。换个配置，问题就解决了。\n\n**第二种：能力边界。** 无论哪个模型、哪种配置，在现阶段都存在的根本性局限。\n\n理解这个区分，能让你对 AI 的判断更准确——不会因为误解\"配置问题\"而低估 AI，也不会因为忽视\"能力边界\"而过度信任它。\n\n---\n\n## 第一种：配置问题（换个工具能解决）\n\n### 实时信息\n\n早期的 AI 不知道今天发生的事，因为它的知识有一个截止日期，之后的事一概不知。\n\n2026年的现状：大部分主流 AI 平台已经配备了联网搜索工具。当你的问题涉及实时信息，它会主动去查，再给你答案。\n\n**但你需要确认：** 你用的 AI 在回答时，是真的在联网查，还是凭旧知识回答？对时效性强的信息——比如最新政策、股价、某家公司的现状——问完之后确认一下它有没有引用最新来源。\n\n### 数字计算\n\n早期语言模型做数学，本质上是在\"预测答案通常是什么\"，而不是真正在算——所以错误率高。\n\n2026年的现状：配有代码解释器的 AI，会直接写代码运行来得出结果，准确性大幅提升。\n\n**但同样需要确认：** 你的 AI 是在真正运行计算，还是在用语言描述计算过程？对于重要的财务数字，验算一遍永远是好习惯。\n\n---\n\n## 第二种：能力边界（现阶段根本性的局限）\n\n这才是这章真正要说的重点。这些局限，换再好的 AI 工具也不会消失。\n\n### 局限一：幻觉——它会一本正经地说错话\n\n幻觉，是指 AI 生成了听起来完全合理、但实际上不准确甚至完全错误的内容。\n\n2026年的模型，幻觉频率已经明显下降，在不确定时也会更多地说\"我不太确定\"。但它并没有消失。\n\n原因在于 AI 的工作方式：它的目标是生成\"流畅合理的文字\"，而不是\"只说自己确定的事\"。当训练数据不足，或者问题超出它的知识范围，它不会停下来——它会继续生成，填补空白，有时候填错。\n\n**最需要小心的场景：**\n- 具体的人名、职位、时间节点\n- 具体的统计数字或研究结论\n- 小众领域的专业信息\n\n**基本原则：** 重要的信息，去原始来源核实。把 AI 的输出当起点，不当终点。\n\n---\n\n### 局限二：引用捏造——它会编造一个\"看起来真实\"的来源\n\n这是幻觉的一个特别危险的变体。\n\n当你让 AI 引用一篇论文、一本书、一份报告时，它有时候会给你一个格式完整、看起来完全真实的引用——有作者名、有期刊名、有年份——但那篇文章根本不存在。\n\n它不是在故意骗你，它只是在用\"生成一个格式正确的引用\"来回应你的请求，就像它生成其他任何文字一样。\n\n国内外都发生过律师在法庭文书里引用了 AI 捏造的判例，被对方当场揭穿，造成严重的专业声誉损失。\n\n**基本原则：** 任何需要引用具体文献的场景，必须亲自找到并核实原始来源。AI 给的引用，只能当作\"搜索线索\"，不能直接使用。\n\n---\n\n### 局限三：逻辑可能断裂——流畅不等于严密\n\nAI 非常擅长维持表面的逻辑流畅——它知道什么时候该用\"因此\"，什么时候该用\"然而\"，一段论证读起来环环相扣。\n\n但在长文档、复杂推理里，它可能在第三段得出一个结论，在第七段又悄悄给出一个与之矛盾的结论——并且用流畅的语言，让这个矛盾看起来像自然的过渡。\n\n**需要特别注意的场景：**\n- 多步骤推理（因为A所以B，因为B所以C……）\n- 长篇分析报告\n- 涉及多个变量相互影响的复杂判断\n\n**基本原则：** 对逻辑要求高的文档，不要只是\"读一遍感觉没问题\"。有意识地检查：这些结论之间，真的在互相支撑，还是只是听起来流畅？\n\n---\n\n### 局限四：爱说你想听的话\n\n这个问题有个学术名字，叫**拍马屁效应（Sycophancy）**。\n\nAI 在训练过程中接受了大量人类反馈来优化输出，这个过程带来了一个副作用：它学会了倾向于给出\"让人满意\"的答案，而不是\"让人不舒服但正确\"的答案。\n\n**具体表现：**\n- 你提出一个有问题的计划，它先帮你把这个计划说得更好听，然后才（也许）提一两条温和的建议\n- 你坚持一个错误的观点，在你反复坚持后，它往往会退让，而不是坚持正确答案\n- 你问\"我写的这段话怎么样\"，它倾向于给你多打几分\n\n**为什么危险：** 当你用 AI 评估方案、识别风险、做决策支持时，你需要的是诚实的质疑，不是优雅的肯定。\n\n**一个有用的技巧：** 明确告诉它\"请扮演一个挑剔的批评者，找出这个方案最大的问题\"，或者\"你不需要肯定我，直接告诉我哪里有漏洞\"。给它一个\"可以说不好\"的明确授权。\n\n---\n\n### 局限五：它不了解你的具体处境\n\nAI 没有价值观，没有真实的利益考量，也不了解你的实际情况——即使它表现得好像有。\n\n它不知道你公司真实的权力结构，不知道你和这个客户的历史，不知道你们行业的潜规则，不知道你个人的风险偏好。它只知道你告诉它的那些。\n\n当你问它\"这个决定好不好\"，它给你的回答，本质上是基于\"类似问题的常见回答方式\"生成的，而不是基于对你真实处境的理解。\n\n**基本原则：** AI 的分析，适合用来扩展你的思考维度，不适合替代你的判断。它帮你想到更多可能性，但\"这件事该怎么做\"，必须由真正理解处境的人来决定。\n\n---\n\n### 局限六：它不能帮你承担后果\n\nAI 是工具，工具没有法律主体资格。\n\n如果 AI 的输出造成了错误——财务损失、合规风险、商业决策失误——责任由谁承担？\n\n答案是：使用者。\n\n**这不是在吓你，而是帮你建立一个清晰的认知：** AI 可以帮你做事，但它不能帮你承担后果。在决定\"要不要把某个重要任务完全交给 AI 处理\"时，这条认知应该始终在你脑海里。\n\n---\n\n## 一张实用的风险判断表\n\n| 风险级别 | 场景 | 建议 |\n|---------|------|------|\n| 🟢 低 | 内部草稿、头脑风暴、个人学习 | 放心用，通读一遍即可 |\n| 🟡 中 | 对外沟通、含数据的报告、客户提案 | 核实关键数字和事实，检查逻辑 |\n| 🔴 高 | 法律文件、财务报告、合规内容、重大决策依据 | 必须有专业人工审核，AI 只能辅助 |\n\n---\n\n## 📌 本章要点卡\n\n1. AI 的局限分两类：**配置问题**（换工具能解决）和**能力边界**（现阶段根本性的）\n2. 能力边界里最重要的三条：**幻觉**（会说错）、**引用捏造**（会编来源）、**爱说你想听的**（会拍马屁）\n3. AI 不能帮你承担后果——用它的输出做重要决定时，**你是最终负责人**\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 下次 AI 给你一个具体的数字或引用，试试去**独立核实**一下——感受一下它准不准\n- [ ] 下次让 AI 评估你的方案时，加一句：\"**请直接告诉我这个方案最大的问题**\"，看看答案是否不同\n- [ ] 对照风险判断表，想想你工作里用 AI 做的事，分别属于哪个级别\n\n---\n\n*下一章：AI 安全与隐私——你贴进去的内容，到底去了哪里*\n\n\n---\n","wordCount":2907},{"id":"ai-literacy-foundations-part-2-4","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Ch4.md","partKey":"part-2","partTitle":"正文","chapterInPart":4,"globalChapter":4,"numberLabel":"","metaLabel":"","title":"第四章：AI 安全与隐私","markdown":"# 第四章：AI 安全与隐私\n\n> 读完这章，你会知道什么东西绝对不能贴进 AI——以及为什么。\n\n---\n\n## 一个你可能从没想过的问题\n\n你每天用 AI 处理各种事情。\n\n但你有没有停下来想过：**你贴进去的那些内容，AI 公司拿去干嘛了？**\n\n这不是技术人员才需要关心的问题。这是所有人都应该知道的基本常识。\n\n因为在这件事上犯错，代价可能不是\"AI 回答得不好\"，而是数据泄露、违反合规、法律纠纷，或者职业声誉的损害。\n\n---\n\n## 你贴进去的数据，到底去了哪里？\n\n答案取决于你用的是哪种 AI 服务。\n\n### 消费级 AI（免费版 / 个人版）\n\n当你用个人账号使用 ChatGPT、Claude、文心一言这类产品时，你输入的内容**默认可能被用于改进模型**。\n\n2026年，大部分主流平台都提供了\"退出训练\"的选项。比如 ChatGPT 可以在设置里关闭\"改进模型\"，Claude 对付费用户默认不用于训练。\n\n但问题是：**大多数人根本不知道这个开关在哪里，或者从来没有去动过它。**\n\n底线是：如果你在消费级 AI 里输入了敏感信息，而且没有确认过隐私设置——那些信息可能已经进入了训练数据的管道。\n\n### 企业级 AI（Enterprise 版本）\n\n大型 AI 提供商都有企业版产品，核心承诺通常是：\n\n- 不用客户数据训练模型\n- 数据按合同约定的期限处理后删除\n- 满足相关合规要求\n\n如果你的公司采购了企业版 AI 服务，通过官方渠道使用，数据保护级别比个人版高得多。\n\n**但有一个前提：你用的确实是企业版通道。** 很多员工虽然公司有官方 AI 工具，但因为习惯或者方便，仍然把工作内容粘贴进自己的个人账号——这等于绕过了所有企业级保护。\n\n### 本地部署\n\n一些对数据安全要求极高的组织，会在自己的服务器上部署 AI 模型。这种情况下，数据完全不离开组织的系统边界。\n\n国内的一些银行、医院、政府机构已经在走这条路。代价是部署和维护需要专业团队，模型能力通常也不如最前沿的云端版本。\n\n---\n\n## 什么东西绝对不能贴进公共 AI？\n\n无论你用的是哪个平台，只要不是经过企业安全评估的官方渠道，以下内容绝对不要输入：\n\n### ❌ 密码和系统凭证\n\n听起来不可思议，但确实有人把密码、API Key、系统访问凭证粘贴进 AI——\"帮我看看这个配置有没有问题\"。\n\n一旦这些信息进入 AI 的处理管道，你无法确定它会被存储多久、是否会出现在日志里。\n\n### ❌ 客户的个人信息\n\n姓名、手机号、身份证号、地址、购买记录——任何能直接识别到具体个人的信息。\n\n在中国的《个人信息保护法》下，未经授权将客户个人数据传输给第三方 AI 服务，**可能构成违法行为**，不只是\"不太好\"的问题。\n\n### ❌ 公司商业机密\n\n未公开的财务数据、产品计划、并购谈判、定价策略、核心客户名单——这些是公司的核心资产。\n\n2023年三星半导体的案例是这方面最被广泛引用的教训：工程师将机密源代码粘贴进 ChatGPT，信息泄露后，公司被迫全面禁止员工使用外部 AI 工具。\n\n### ❌ 法律相关的保密信息\n\n律师与客户之间的保密通信、正在进行的诉讼策略——这些信息如果被第三方获取，可能导致法律特权的丧失。\n\n### ❌ 医疗与健康信息\n\n患者的诊断记录、检验报告、治疗方案——在大多数法律框架下属于最高级别的敏感数据。\n\n---\n\n## \"我只是让它帮我改个格式\"——一个常见的自我安慰\n\n很多人觉得：\"我只是贴了一小段，让它整理一下而已。\"\n\n问题在于：你贴进去的那\"一小段\"，可能已经足够暴露关键信息了。\n\n一个思维实验：\n\n你把内部报告的一段粘贴进 AI 让它润色，那段里提到了\"Q3 营收下滑12%\"和\"东南亚市场撤出计划\"。\n\n你觉得这只是一小段。但对于有心人来说，这已经是非常有价值的未公开信息了。\n\n**一个好用的判断规则：如果这条信息出现在微博上你会紧张，那它就不应该出现在公共 AI 的输入框里。**\n\n---\n\n## 安全使用的实用方法：匿名化处理\n\n知道不能贴什么，不意味着 AI 就没法帮你处理敏感工作。\n\n关键是：**用匿名化或抽象化的方式描述问题。**\n\n**例子：**\n\n你有一份包含客户真实信息的合同需要优化措辞。\n\n❌ 不安全：把合同全文（含客户姓名、金额、条款）直接粘贴进去。\n\n✅ 安全：\n> \"我有一份 B2B 销售合同，需要优化付款条件和违约责任这两个条款的表述。以下是当前版本（把具体金额替换成[X万元]，客户名称替换成[客户方]）……\"\n\n你得到的帮助是一样的，但实质性的敏感信息留在了你的系统里。\n\n---\n\n## 一张日常场景判断表\n\n| 场景 | 建议 |\n|------|------|\n| 用 AI 改写一封不含敏感信息的内部邮件 | ✅ 通常安全 |\n| 把客户完整联系方式粘贴进去让 AI 整理 | ❌ 含个人数据，不要用公共 AI |\n| 上传已公开的行业报告让 AI 总结 | ✅ 公开信息，可以使用 |\n| 上传公司未公开的财务报表让 AI 分析 | ❌ 商业机密，用企业版或本地工具 |\n| 让 AI 润色你自己写的简历 | ✅ 你自己的信息，你有处置权 |\n| 把正在谈判的合同全文发给 AI 做分析 | ❌ 商业机密，匿名化处理后再用 |\n| 问 AI 一个通用的法律知识问题 | ✅ 通用知识，不涉及具体案件 |\n| 把具体诉讼细节发给 AI 做分析 | ❌ 法律特权信息，风险极高 |\n\n---\n\n## 如果你所在的公司有 AI 使用政策\n\n遵守它。\n\n如果你不确定有没有——去问 IT 或合规部门。\n\n如果公司还没有——你至少应该按照本章的原则来保护自己和公司。\n\n到了2026年，有正式 AI 使用规范的企业已经越来越多。这类政策通常包含：哪些工具是批准使用的、哪类数据只能用企业版渠道、哪些信息禁止输入任何外部 AI。\n\n---\n\n## 最后说一句\n\n说了这么多\"不要\"，可能让你觉得 AI 用起来太麻烦了。\n\n不是这个意思。\n\n就像网络银行一样：你不会因为存在网络诈骗就永远不用手机银行——你学会了识别钓鱼链接、不把验证码告诉别人、开启双重验证。\n\n对 AI 的安全使用，也是同样的逻辑：**不是不用，而是知道哪些边界不能越。**\n\n---\n\n## 📌 本章要点卡\n\n1. 消费级 AI 和企业级 AI 数据处理方式完全不同——**先确认你用的是哪种**\n2. 绝对不能输入公共 AI 的：**密码、客户个人信息、商业机密、法律保密信息、医疗数据**\n3. 安全使用的核心技巧：**匿名化处理**——保留结构，替换敏感细节\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 打开你最常用的 AI 工具，找到**隐私设置**，确认\"用于训练模型\"的选项是否符合你的意愿\n- [ ] 回想一下最近一周你贴进 AI 的内容，有没有**不该贴的**？\n- [ ] 如果你管团队，考虑制定一条简单的规则：**哪类信息只能用公司批准的 AI 渠道处理**\n\n---\n\n*下一章：如何与 AI 协作——不叫 prompt engineering，叫 AI 沟通*\n\n\n---\n","wordCount":2639},{"id":"ai-literacy-foundations-part-2-5","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Ch5.md","partKey":"part-2","partTitle":"正文","chapterInPart":5,"globalChapter":5,"numberLabel":"","metaLabel":"","title":"第五章：如何与 AI 协作","markdown":"# 第五章：如何与 AI 协作\n\n> 读完这章，你会知道为什么同样一个问题，有人问出来的答案很有用，有人问出来的答案一塌糊涂。\n\n---\n\n## 先换一个词\n\n你可能听过\"提示词工程\"（Prompt Engineering）这个词。\n\n听起来很技术，好像需要专门学一套语法规则，只有程序员才能掌握。\n\n我们这本书里不用这个词。\n\n我们用一个更准确的词：**AI 沟通（AI Communication）**。\n\n因为和 AI 有效交流，本质上不是工程问题，而是沟通问题。它和你跟一个新同事、新助理沟通，遵循同一套逻辑：**说清楚你是谁、你要什么、你期待什么样的结果。**\n\n唯一的区别是：这个\"助理\"不会主动问你\"你的意思是……吗\"——所以你需要在一开始就把这些说清楚。\n\n---\n\n## 为什么同样的问题，答案差这么多？\n\n来看一个真实的对比。\n\n**同样的目标：** 写一封向客户解释项目延期的邮件。\n\n❌ 问法一：\n> \"帮我写一封项目延期的邮件。\"\n\n得到的结果：一封通用的、可以套用在任何行业任何情况的模板邮件。\n\n✅ 问法二：\n> \"我是一家咨询公司的项目经理，需要给客户写一封邮件，说明交付时间从3月15日推迟到3月28日，原因是数据接口对接比预期复杂。这个客户是制造业企业的采购总监，我们合作关系不错，但他们对时间节点非常敏感。邮件需要专业、诚恳，不要过度道歉，要给出具体的补救措施。\"\n\n得到的结果：一封你可以直接发出去的邮件。\n\n差距不是因为 AI 变聪明了，而是因为你给的信息质量完全不同。\n\n---\n\n## 五个让 AI 真正有用的原则\n\n### 原则一：给够背景\n\nAI 只知道你告诉它的事情。它不知道你在哪个行业、受众是谁、文件是内部用还是对外发、公司风格是保守还是开放。\n\n如果你不说，它只能猜——猜的是\"大多数情况下最常见的假设\"，不一定符合你的实际情况。\n\n**一个简单的检查清单：**\n- 我是谁？（角色、背景）\n- 受众是谁？（他们懂什么、不懂什么）\n- 目的是什么？（这个输出会被怎么用）\n- 有什么限制？（长度、语气、不能提什么）\n\n---\n\n### 原则二：说清楚你要什么格式\n\n\"给我一个分析\"可以是：一段叙述、一个列表、一张表格、一个PPT大纲、一份带小标题的报告……\n\n不说的话，AI 会自己选一个它觉得合适的。\n\n**常用的格式指令：**\n- \"用三个要点总结，每个要点不超过两句话\"\n- \"用表格对比优点和缺点\"\n- \"结论先行，再展开分析\"\n- \"像给高管做简报一样，简短直接\"\n\n格式说清楚，拿到的结果往往可以直接用。\n\n---\n\n### 原则三：把大任务拆成小步骤\n\n把复杂任务一次性扔给 AI，结果往往是面面俱到但哪里都不够深。\n\n更好的方式：拆成小步骤，一步一步来。\n\n**例子：** 写一份市场分析报告。\n\n❌ 一次全要：\n> \"帮我写一份完整的东南亚市场分析报告，包括市场规模、竞争格局、进入策略、风险评估和执行计划。\"\n\n✅ 分步骤：\n> 第一步：\"分析新市场我需要考虑哪些维度？给我一个框架。\"\n> 第二步：\"基于这个框架，帮我起草市场规模和竞争格局这两部分的大纲。\"\n> 第三步：\"根据这些信息，给我几个进入策略的选项和各自的优劣势。\"\n\n每一步你都可以检查方向，每一步的质量也往往比一次全要好。\n\n---\n\n### 原则四：让 AI 说明它的推理过程\n\n你不只是要答案，你还可以要推理过程。\n\n**几种有用的问法：**\n- \"给出建议之前，先告诉我你考虑了哪些因素\"\n- \"这个结论是基于什么假设？\"\n- \"你对这个判断有多大把握？哪些地方你不确定？\"\n\n要求展示推理过程，你可以检查它的逻辑是否合理，也能帮 AI 自己想得更深。\n\n---\n\n### 原则五：主动要求它说实话\n\n在第三章，我们讲过 AI 有\"爱说你想听的话\"的倾向。\n\n你可以主动对抗这个倾向：\n\n- \"如果你对某个信息不确定，请直接说出来\"\n- \"请不要只告诉我好消息，把这个方案真正的问题也说出来\"\n- \"扮演一个挑剔的批评者，找出这个计划最大的漏洞\"\n\n给它一个\"可以说不好\"的明确授权，答案会诚实得多。\n\n---\n\n## 一个完整的沟通模板\n\n```\n【背景】我是……，现在需要……\n【受众】这份输出是给……看的，他们的背景是……\n【任务】具体请你帮我……\n【格式】请用……的格式，长度大约……\n【约束】需要注意……，不要……\n【诚实要求】如果你不确定某些内容，请直接说出来\n```\n\n不需要每次都严格按这个格式写，但这六个维度是让 AI 给你真正有用输出的关键变量。\n\n---\n\n## 2026年的新现实：这是一个来回的对话\n\n第一个输出不满意，继续对话：\n\n- \"这个方向对，但第二段太长了，压缩成3句话\"\n- \"换个角度，站在客户立场，这个方案看起来怎么样？\"\n- \"你刚才说的第三点，我有不同意见，你觉得我的理由站得住吗？\"\n\n把 AI 当成可以来回推敲的思维伙伴，而不是用一次就结束的工具——这个转变，会让你的使用效率产生质的提升。\n\n---\n\n## 📌 本章要点卡\n\n1. 和 AI 协作是**沟通**，不是技术——叫\"AI 沟通\"，不叫\"提示词工程\"\n2. 五个核心原则：**给够背景、说清格式、分步骤、要求展示推理、主动要求说实话**\n3. 第一个输出不满意是正常的——**继续对话**，这才是正确的工作方式\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 找一件你最近让 AI 做但结果\"不太对\"的事，**按沟通模板重新问一遍**，看看结果有没有不同\n- [ ] 下次让 AI 给建议时，加一句：\"**请先告诉我你考虑了哪些因素**\"\n- [ ] 下次对输出不满意，**不要重新开始**，直接在对话里继续修改——试试来回推敲三轮\n\n---\n\n*下一章：如何验证 AI 的输出——拿到答案之后，怎么判断能不能用*\n\n\n---\n","wordCount":2083},{"id":"ai-literacy-foundations-part-2-6","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Ch6.md","partKey":"part-2","partTitle":"正文","chapterInPart":6,"globalChapter":6,"numberLabel":"","metaLabel":"","title":"第六章：如何验证 AI 的输出","markdown":"# 第六章：如何验证 AI 的输出\n\n> 读完这章，你会有一套实用的核实习惯——不是对 AI 不信任，而是对自己负责。\n\n---\n\n## 一个很实际的问题\n\n你让 AI 帮你整理了一份数据，写了一段分析，引用了几个研究结论。\n\n现在摆在你面前的问题是：**这些内容，我能直接用吗？**\n\n在第三章，我们说过：AI 说错话的方式，和它说对话的方式一模一样。你没有办法靠\"感觉\"来判断它的输出是否可信。\n\n所以你需要一套方法。\n\n这一章，讲的就是这套方法。\n\n---\n\n## 先说一件重要的事\n\n有人觉得：需要核实 AI 的输出，说明 AI 不够好，等 AI 进化了就不用核实了。\n\n这个逻辑是错的。\n\n核实，不是因为工具不够好。核实，是因为**你对输出结果负责**。\n\n一个负责任的财务总监，不会因为报表是系统自动生成的，就不做交叉核对——因为报表上有他的名字。\n\n一个好的编辑，不会因为文章是记者写的，就不校对——因为发出去的是他负责的版面。\n\nAI 进入工作流，不改变这个逻辑。**谁签字，谁负责，谁就需要核实。**\n\n---\n\n## 验证的四个维度\n\n### 维度一：事实核查\n\n这是最基本的——确认 AI 给你的具体事实是否准确。\n\n**需要重点核查的内容：**\n- 具体数字（市场规模、增长率、统计数据）\n- 时间节点（某件事发生在哪一年、某政策什么时候生效）\n- 人名和职位（某人是否真的担任某职位）\n- 法规和政策的具体条款\n\n**核查的方法：**\n\n第一步，把输出里所有\"具体的、可以被验证的陈述\"标记出来。\n\n第二步，去独立来源核实——官方网站、政府公告、权威媒体。**不是再问一次 AI**，而是去找原始来源。\n\n第三步，注意时效——即使事实本身没错，它是否已经过时？政策有没有更新？数据有没有新版本？\n\n**一个反直觉的提醒：** 用另一个 AI 来核实 AI 的输出，不算独立核实。两个 AI 可能犯同样的错误，甚至来自同样的训练数据。\n\n---\n\n### 维度二：数字验证\n\n涉及数字的输出，值得独立验算。\n\n即使你用的 AI 配有代码解释器，在高风险场景下——比如财务报告、对外提案——关键数字还是要用自己的工具跑一遍。\n\n**几类需要重点验证的场景：**\n- 百分比和增长率：基数是什么？是同比还是环比？\n- 财务计算：时间段、利率、频率的细微差异，结果可能差很多\n- 汇总数字：把明细加总，看看和 AI 给的合计是否吻合\n\n**工具：** Excel、计算器、Python——选你熟悉的，把关键数字自己跑一遍。\n\n---\n\n### 维度三：来源追溯\n\n当 AI 说\"某研究表明\"、\"数据显示\"、\"根据某报告\"时，你需要找到原始来源。\n\n**操作步骤：**\n1. 要求 AI 提供具体来源：\"你引用的这个数据，原始出处是哪里？\"\n2. 根据它给的线索，去搜索原始文献\n3. 亲自查阅原文：数据是否真实存在？引用是否准确？有没有断章取义？\n\n**一个现实的提醒：** 如果你搜索之后找不到这篇文献，不要假设是你搜索方法的问题。如第三章所说，AI 有时候会捏造看起来完全真实的引用。找不到，很可能那个来源根本不存在。\n\n---\n\n### 维度四：逻辑一致性\n\n这是最容易被忽略、但在复杂输出里最重要的一个维度。\n\nAI 非常擅长维持表面的逻辑流畅，但在长文档里，它可能在第三段得出一个结论，在第七段又悄悄给出一个与之矛盾的结论——用流畅的语言把矛盾掩盖掉。\n\n**几个实用的检查方法：**\n\n**检查内部矛盾：** 前面的结论和后面的结论是否互相支撑？有没有在某处悄悄改变了前提假设？\n\n**检查因果链：** \"因为A，所以B，所以C\"——每一步的推导是否成立？有没有跳步骤，或者用\"关联\"代替\"因果\"？\n\n**换个角度重问：** 把同样的问题反过来问一遍——\"请从反对的角度分析这个方案\"。如果两次结果高度矛盾，说明 AI 的分析可能都不够稳固。\n\n---\n\n## 一个容易被忽视的技巧：直接追问 AI\n\n当你对某个输出有疑问时，直接问它：\n\n- \"你对刚才这个回答有多大把握？\"\n- \"这个信息有没有可能已经过时？\"\n- \"哪些部分你比较确定，哪些部分建议我自己去核实？\"\n\n2026年的主流模型，在被直接追问时，往往会更诚实地表达不确定性——\"实际上我对这个数字不是很确定，建议你查一下官方来源\"。\n\n这不能替代独立核实，但可以帮你快速找到最值得花时间验证的地方。\n\n---\n\n## 根据风险等级来决定核实力度\n\n核实是必要的，但核实每一个字也不现实。\n\n用风险等级来决定你该花多少时间：\n\n**🟢 低风险**（内部草稿、头脑风暴）\n→ 通读一遍，感觉方向对就推进\n\n**🟡 中风险**（对外沟通、含数据的报告）\n→ 标出所有可核查事实 → 独立核实关键数字 → 检查整体逻辑\n\n**🔴 高风险**（法律文件、财务报告、重大决策依据）\n→ 全面核实所有事实 → 独立验算所有数字 → 追溯所有引用来源 → 领域专家做最终审核\n\n---\n\n## 📌 本章要点卡\n\n1. 验证 AI 输出的四个维度：**事实核查、数字验证、来源追溯、逻辑一致性**\n2. 独立核实的意思是去原始来源——**不是再问一次 AI**\n3. 根据风险等级分配核实力度，不是每条都要查，但高风险场景必须认真对待\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 找一份 AI 最近给你的输出，挑出**三条具体的陈述**，去独立核实一下——感受一下准确率\n- [ ] 下次 AI 给你引用了\"某研究表明\"，试试问它：\"**这个来源具体是哪里？**\"\n- [ ] 对照风险等级，给你工作里用 AI 的场景**各自归个类**，想想你目前的核实习惯够不够\n\n---\n\n*下一章：AI 对工作与社会的影响——这不只是一场技术变革*\n\n\n---\n","wordCount":2160},{"id":"ai-literacy-foundations-part-2-7","bookId":"ai-literacy-foundations","fileName":"AI_Literacy_Foundations_Ch7.md","partKey":"part-2","partTitle":"正文","chapterInPart":7,"globalChapter":7,"numberLabel":"","metaLabel":"","title":"第七章：AI 对工作与社会的影响","markdown":"# 第七章：AI 对工作与社会的影响\n\n> 读完这章，你会有一个清醒的视角——AI 正在改变什么，不会改变什么，以及你该怎么在这个时代找到自己的位置。\n\n---\n\n## 两种声音，都不完全对\n\n关于 AI 对工作的影响，你能听到的声音往往走两个极端。\n\n一个极端是：\"AI 会取代所有人，大量工作即将消失，我们都会失业。\"\n\n另一个极端是：\"AI 只是工具，和计算机、互联网一样，历史上每次技术革命都制造了更多工作，这次也不例外，不用担心。\"\n\n两种声音都有道理，也都不完整。\n\n真实的情况，比任何一个整齐的叙事都要复杂。\n\n这一章不做预测——没有人能准确预测未来。我们只是帮你建立一个框架，让你能对正在发生的变化做出自己的判断。\n\n---\n\n## AI 带来的不是普通的\"自动化\"\n\n过去几十年，我们对\"技术取代工作\"的理解，主要来自工业自动化：机器人替代流水线工人，ATM 减少银行柜员，ERP 系统简化财务录入。\n\n这类自动化有一个共同特征：**替代的是重复性强、规则清晰、可以精确描述的任务。**\n\nAI 带来的变化，和这个逻辑不完全一样。\n\n2026年的 AI，开始能处理一些过去被认为\"只有人能做\"的任务：写作、分析、设计、编程、法律文书、医疗诊断辅助……这些不是简单的重复动作，而是需要语言、判断、创意的认知类工作。\n\n这意味着：**这一轮变革，首先冲击的不是蓝领工人，而是知识工作者。**\n\n这是一个值得认真对待的历史性转折。\n\n---\n\n## AI 替代的是任务，不是工作\n\n一个帮你想清楚这件事的框架：\n\n几乎所有的工作，都是由一系列任务组成的。AI 可能替代其中的一部分任务，同时让另一部分任务变得更重要。\n\n**以财务分析师为例：**\n\n| 任务 | AI 的影响 |\n|------|-----------|\n| 数据收集与整理 | 大幅自动化 |\n| 生成标准化报表 | 大幅自动化 |\n| 初步解读数据 | 部分辅助 |\n| 识别异常和风险信号 | 部分辅助，人工判断仍关键 |\n| 向管理层解释业务含义 | AI 难以替代 |\n| 在不确定情况下做判断 | AI 难以替代 |\n| 与业务部门建立信任关系 | AI 难以替代 |\n\n结论不是\"财务分析师会消失\"，而是\"财务分析师的工作内容会改变\"——低价值重复任务减少，高价值判断和沟通任务增加。\n\n这个模式，在几乎所有知识工作领域都在发生。\n\n---\n\n## 在 AI 时代反而更值钱的能力\n\n有一类能力，在 AI 普及的背景下不但没有贬值，反而变得更稀缺。\n\n### 判断力与决策\n\nAI 可以生成选项、分析数据、呈现风险——但在真正的不确定性下做决策，尤其是涉及价值取舍、伦理权衡、长期与短期利益的决策，仍然需要人。\n\n原因不只是技术，还有责任归属。AI 不能为决策承担后果，所以它不能真正\"做决策\"，只能辅助决策。\n\n### 关系与信任\n\n客户信任、团队凝聚、跨部门协作、危机时刻稳定人心——这些根植于真实的人际关系，是 AI 无法模拟的。\n\n在一个很多输出都可以被自动化的时代，\"这个人值得信任\"反而成了更稀缺的资产。\n\n### 情境理解与常识\n\nAI 理解文字，但对复杂社会情境、组织政治、文化背景的理解，有根本性的局限。\n\n\"这封邮件在我们公司的语境里是什么意思\"、\"这个客户现在的真实状态是什么\"、\"这个决定在团队里会引发什么反应\"——这些判断，需要你真实地在这个环境里存在过。\n\n### 监督与编排\n\n随着 AI 工具普及，一个新的关键能力正在浮现：**知道用什么 AI 工具、在什么时候用、用完之后怎么验证和整合。**\n\n这不是简单地\"会用 AI\"，而是在 AI 工具之上的系统性判断力。能做好这件事的人，在组织里的价值正在快速上升。\n\n---\n\n## 对你自己最实用的四条建议\n\n**第一条：不要问\"AI 会不会取代我\"，而是问\"我工作里哪些任务 AI 做得更好，哪些我做得更好\"。**\n\n把前者交给 AI，把精力集中在后者。这不是退缩，而是更聪明地分配你的时间。\n\n**第二条：有效使用 AI 本身，是一种正在升值的职业能力。**\n\n不是说你需要懂技术。而是说，能有效和 AI 协作、能判断 AI 输出质量、能用 AI 提升自己工作产出的人，职场竞争力正在显著提升。\n\n**第三条：保持对这个领域的关注。**\n\nAI 本身在快速演进，它能做的事每隔几个月就有明显变化。不需要成为专家，但需要保持好奇心和更新意识。\n\n**第四条：人类技能的价值，在 AI 时代反而上升了。**\n\n判断力、沟通力、信任建立、情境理解——这些能力的稀缺性，在 AI 处理越来越多基础任务之后，只会更高，不会更低。不要因为 AI 的出现而放弃对这些能力的投资。\n\n---\n\n## 一个开放的结尾\n\n关于 AI 对社会的更大影响——就业、教育、贫富分化、监管——这些问题没有简单的答案。\n\n有一件事值得记住：\n\n技术本身是中性的。AI 可以帮助资源匮乏地区的人获得更好的服务，也可能加剧信息不平等；它可以让小团队做出以前只有大机构才能做的事，也可能让资源进一步集中。\n\n方向不是被技术决定的，而是被选择决定的。\n\n这一点，值得每个在 AI 时代工作的人记住。\n\n---\n\n## 写在第一册结尾\n\n到这里，你已经完成了《AI 素养基础》的全部七章。\n\n你现在应该清楚：AI 是什么、能做什么、不能做什么、如何安全使用、如何有效沟通、如何验证输出，以及它正在如何改变我们的工作。\n\n这是 AI 素养的基础。\n\n但理解 AI，和在一个组织里系统地用好 AI，是两件不同的事。\n\n**下一册《AI 原生工作基础》，我们进入组织和真实工作流的层面。**\n\n你和你的组织，现在在 AI 使用上处于什么位置？从这个位置出发，下一步该做什么？第二册从这里开始。\n\n---\n\n## 📌 本章要点卡\n\n1. AI 替代的是**任务**，不是工作——每个职业里，重复任务减少，判断任务增加\n2. 在 AI 时代反而升值的能力：**判断力、关系与信任、情境理解、监督与编排**\n3. 技术的影响方向，**由选择决定**，不由技术本身决定\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 列出你工作里**五件最常做的事**，给每件事打个标签：AI 可以替代、AI 可以辅助、AI 很难替代——看看比例是什么\n- [ ] 想想你目前**最稀缺的人类技能**是什么，你在有意识地培养它吗？\n- [ ] 如果你管团队，和团队聊聊：**我们现在在 AI 使用上处于什么阶段？**——这个对话本身，就是开始的第一步\n\n---\n\n*下一册：《AI 原生工作基础》——当 AI 进入组织，工作方式如何系统性升级*\n\n\n---\n","wordCount":2489}],"chapterCount":9,"wordCount":19630}]}</script>
+  <script>
+    const library = JSON.parse(document.getElementById("library-data").textContent);
+    const packagedBooks = library.books || [];
+    let importedBooks = library.singleBook ? [] : loadJson("reader.importedBooks", []);
+    let notes = loadJson("reader.notes", []);
+    let selectedTextForNote = "";
+    let pendingNoteId = "";
+    const state = {
+      activeBookId: library.singleBook ? packagedBooks[0]?.id : localStorage.getItem("reader.activeBookId") || allBooks()[0]?.id,
+      activeId: library.singleBook ? localStorage.getItem("reader.singleBook.activeId") : localStorage.getItem("reader.activeId"),
+      view: library.singleBook ? "reader" : localStorage.getItem("reader.view") || "home",
+      query: "",
+      fontSize: Number(localStorage.getItem("reader.fontSize") || 19),
+      theme: localStorage.getItem("reader.theme") || "light",
+    };
+
+    const toc = document.getElementById("toc");
+    const content = document.getElementById("content");
+    const search = document.getElementById("search");
+    const libraryTitle = document.getElementById("libraryTitle");
+    const publicHomeButton = document.getElementById("publicHomeButton");
+    const publicBookstoreButton = document.getElementById("publicBookstoreButton");
+    const publicAboutButton = document.getElementById("publicAboutButton");
+    const homeButton = document.getElementById("homeButton");
+    const bookstoreButton = document.getElementById("bookstoreButton");
+    const aboutButton = document.getElementById("aboutButton");
+    const bookPicker = document.getElementById("bookPicker");
+    const bookSelect = document.getElementById("bookSelect");
+    const bookDescription = document.getElementById("bookDescription");
+    const importTools = document.getElementById("importTools");
+    const importButton = document.getElementById("importButton");
+    const fileInput = document.getElementById("fileInput");
+    const dropZone = document.getElementById("dropZone");
+    const noteList = document.getElementById("noteList");
+    const selectionPopup = document.getElementById("selectionPopup");
+    const selectedPreview = document.getElementById("selectedPreview");
+    const noteInput = document.getElementById("noteInput");
+    const cancelNoteButton = document.getElementById("cancelNoteButton");
+    const cancelNoteTextButton = document.getElementById("cancelNoteTextButton");
+    const saveNoteButton = document.getElementById("saveNoteButton");
+    const currentTitle = document.getElementById("currentTitle");
+    const articleMeta = document.getElementById("articleMeta");
+    const footerNav = document.getElementById("footerNav");
+    const prevButton = document.getElementById("prevButton");
+    const nextButton = document.getElementById("nextButton");
+    const progress = document.getElementById("progress");
+
+    document.documentElement.dataset.theme = state.theme;
+    document.documentElement.style.setProperty("--font-size", state.fontSize + "px");
+    document.body.classList.toggle("single-book", Boolean(library.singleBook));
+    libraryTitle.textContent = library.title || "本地阅读器";
+    importTools.style.display = library.authorTools ? "" : "none";
+
+    function loadJson(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function saveImportedBooks() {
+      if (library.singleBook) return;
+      localStorage.setItem("reader.importedBooks", JSON.stringify(importedBooks));
+    }
+
+    function saveNotes() {
+      localStorage.setItem("reader.notes", JSON.stringify(notes));
+    }
+
+    function allBooks() {
+      return packagedBooks.concat(importedBooks);
+    }
+
+    function activeBook() {
+      const books = allBooks();
+      return books.find((book) => book.id === state.activeBookId) || books[0] || { chapters: [] };
+    }
+
+    function chapters() {
+      return activeBook().chapters || [];
+    }
+
+    function renderBookPicker() {
+      const books = allBooks();
+      bookPicker.style.display = books.length > 1 || library.authorTools ? "" : "none";
+      bookSelect.innerHTML = books.map((book) =>
+        '<option value="' + escapeHtml(book.id) + '">' + escapeHtml(book.title) + '</option>'
+      ).join("");
+      bookSelect.value = activeBook().id || "";
+      const book = activeBook();
+      const countText = (book.chapterCount || 0) + " 章 · " + (Math.round((book.wordCount || 0) / 100) / 10) + " 千字";
+      bookDescription.textContent = [book.description, countText].filter(Boolean).join(" / ");
+    }
+
+    function setView(view) {
+      state.view = view;
+      if (!library.singleBook) localStorage.setItem("reader.view", view);
+      document.body.dataset.view = view;
+      homeButton.classList.toggle("active", view === "home");
+      bookstoreButton.classList.toggle("active", view === "bookstore");
+      aboutButton.classList.toggle("active", view === "about");
+      publicHomeButton.classList.toggle("active", view === "home");
+      publicBookstoreButton.classList.toggle("active", view === "bookstore");
+      publicAboutButton.classList.toggle("active", view === "about");
+      footerNav.style.display = view === "reader" ? "" : "none";
+      document.body.classList.remove("menu-open");
+    }
+
+    function renderBookCovers() {
+      const books = allBooks();
+      return books.map((item, index) =>
+        '<button class="book-cover" data-start-book="' + escapeHtml(item.id) + '" type="button" aria-label="打开' + escapeHtml(item.title) + '">' +
+          '<span class="cover-kicker">Book ' + String(index + 1).padStart(2, "0") + '</span>' +
+          '<span>' +
+            '<span class="cover-title">' + escapeHtml(item.title) + '</span>' +
+            '<span class="cover-subtitle">' + escapeHtml(item.description || "点击进入阅读。") + '</span>' +
+          '</span>' +
+          '<span class="cover-footer"><span>' + (item.chapterCount || 0) + ' 篇</span><span>点击阅读</span></span>' +
+        '</button>'
+      ).join("");
+    }
+
+    function renderHome() {
+      setView("home");
+      renderBookPicker();
+      currentTitle.textContent = "首页";
+      articleMeta.textContent = "给 Allie 和她这一代人的 AI 学习笔记";
+      content.innerHTML =
+        '<div class="home-layout">' +
+          '<div class="home-copy">' +
+            '<p class="home-kicker">Library to Allie and her generation</p>' +
+            '<h1 class="home-title">给 Allie 和她这一代人的 AI 学习笔记</h1>' +
+            '<p class="home-lede">这个网站是给我的女儿 Allie，以及和她同一代正在长大的孩子看的。等他们真正进入世界时，AI 很可能已经像搜索、手机和互联网一样普通。</p>' +
+            '<p>这里会放我对 AI 的学习、思考和写作实验：有些是面向小学生也能慢慢理解的 AI 科普，有些是我受到一线 AI 公司公开材料启发后的整理，也有一些是我和 AI 反复讨论、追问、改写后留下来的文章。</p>' +
+            '<div class="home-actions">' +
+              '<button class="text-button" data-show-bookstore="true">进入书城</button>' +
+              '<button class="text-button" data-show-about="true">关于这个网站</button>' +
+            '</div>' +
+          '</div>' +
+          '<div>' +
+            '<h2 class="bookstore-title">书城</h2>' +
+            '<p class="bookstore-lede">目前收录两本：一本是我的 AI 科普与 AI 原生工作手册，一本是 Anthropic Founder&#39;s Playbook 的中文翻译稿。</p>' +
+            '<div class="book-shelf">' + renderBookCovers() + '</div>' +
+          '</div>' +
+          '<div class="home-copy">' +
+            '<h2>参考与启发</h2>' +
+            '<ul class="source-list">' +
+              '<li><a href="https://openai.com/index/malta-chatgpt-plus-partnership/" target="_blank" rel="noreferrer">OpenAI and Malta partner to bring ChatGPT Plus to all citizens</a></li>' +
+              '<li><button class="text-button" data-start-book="founders-playbook" type="button">Anthropic: The founder&#39;s playbook（AI 翻译稿 / Book 02）</button></li>' +
+              '<li><a href="https://www.socratopia.app/" target="_blank" rel="noreferrer">Socratopia: AI-powered Socratic learning</a></li>' +
+            '</ul>' +
+          '</div>' +
+        '</div>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderBookstore() {
+      setView("bookstore");
+      renderBookPicker();
+      currentTitle.textContent = "书城";
+      articleMeta.textContent = "当前收录的书";
+      content.innerHTML =
+        '<h1>书城</h1>' +
+        '<p class="bookstore-lede">这里放我正在整理和写作的书。它们有些是原创科普，有些是学习过程中的翻译、摘录和再理解。</p>' +
+        '<div class="book-shelf">' + renderBookCovers() + '</div>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderAbout() {
+      setView("about");
+      renderBookPicker();
+      currentTitle.textContent = "关于";
+      articleMeta.textContent = "项目说明";
+      content.innerHTML =
+        '<h1>关于这个项目</h1>' +
+        '<p>这个站点不是一个泛泛的 AI 工具导航，也不是一份追热点的教程。它想做的是：受 OpenAI、Anthropic 等一线 AI 公司公开实践的启发，重新写一份更适合中文使用者阅读和行动的 AI 科普与 AI 原生工作手册。</p>' +
+        '<p>我会把原始材料、自己的理解和中文语境下的延展尽量分清楚。这里的观点不一定都对，但它们应该是可讨论、可实践、也可被修正的。</p>' +
+        '<h2>为什么叫“AI 原生工作”</h2>' +
+        '<p>因为 AI 不只是提高某个动作的效率。更深的变化在于：如果 AI 能力已经存在，我们是不是应该重新设计任务、流程、角色和组织协作方式。</p>' +
+        '<div class="home-actions"><button class="text-button" data-start-reading="true">从前言开始</button></div>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderView() {
+      if (state.view === "about") {
+        renderAbout();
+      } else if (state.view === "bookstore") {
+        renderBookstore();
+      } else if (state.view === "reader") {
+        renderArticle();
+      } else {
+        renderHome();
+      }
+    }
+
+    function chapterNumberText(chapter) {
+      if (chapter.numberLabel) return chapter.numberLabel;
+      return chapter.globalChapter === 0 ? "序" : String(chapter.globalChapter);
+    }
+
+    function chapterMetaText(chapter) {
+      const chapterText = chapter.metaLabel || (chapter.globalChapter === 0 ? "前言" : "第 " + chapter.globalChapter + " 章");
+      return chapter.partTitle + " / " + chapterText + " / " + (Math.round(chapter.wordCount / 100) / 10) + " 千字";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function inlineMarkdown(value) {
+      let html = escapeHtml(value);
+      html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      html = html.replace(new RegExp(String.fromCharCode(96) + "([^" + String.fromCharCode(96) + "]+)" + String.fromCharCode(96), "g"), "<code>$1</code>");
+      return html;
+    }
+
+    function renderMarkdown(markdown, query = "") {
+      const lines = markdown.split(/\r?\n/);
+      const blocks = [];
+      let paragraph = [];
+      let list = [];
+      let listType = null;
+      let tableRows = [];
+      let codeLines = [];
+      let inCodeBlock = false;
+
+      function flushParagraph() {
+        if (!paragraph.length) return;
+        blocks.push("<p>" + inlineMarkdown(paragraph.join(" ")) + "</p>");
+        paragraph = [];
+      }
+
+      function flushList() {
+        if (!list.length) return;
+        const tag = listType === "ol" ? "ol" : "ul";
+        blocks.push("<" + tag + ">" + list.map((item) => "<li>" + inlineMarkdown(item) + "</li>").join("") + "</" + tag + ">");
+        list = [];
+        listType = null;
+      }
+
+      function tableCells(line) {
+        return line.replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => cell.trim());
+      }
+
+      function isSeparatorRow(cells) {
+        return cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+      }
+
+      function flushTable() {
+        if (!tableRows.length) return;
+        const rows = tableRows.map(tableCells);
+        const hasHeader = rows.length > 1 && isSeparatorRow(rows[1]);
+        const bodyRows = hasHeader ? rows.slice(2) : rows;
+        if (hasHeader) {
+          blocks.push(
+            "<table><thead><tr>" +
+              rows[0].map((cell) => "<th>" + inlineMarkdown(cell) + "</th>").join("") +
+              "</tr></thead><tbody>" +
+              bodyRows.map((row) => "<tr>" + row.map((cell) => "<td>" + inlineMarkdown(cell) + "</td>").join("") + "</tr>").join("") +
+              "</tbody></table>"
+          );
+        } else {
+          blocks.push(
+            "<table><tbody>" +
+              bodyRows.map((row) => "<tr>" + row.map((cell) => "<td>" + inlineMarkdown(cell) + "</td>").join("") + "</tr>").join("") +
+              "</tbody></table>"
+          );
+        }
+        tableRows = [];
+      }
+
+      function flushCode() {
+        if (!codeLines.length) return;
+        blocks.push("<pre><code>" + escapeHtml(codeLines.join("\n")) + "</code></pre>");
+        codeLines = [];
+      }
+
+      for (const rawLine of lines) {
+        if (rawLine.trim().startsWith(String.fromCharCode(96).repeat(3))) {
+          if (inCodeBlock) {
+            flushCode();
+            inCodeBlock = false;
+          } else {
+            flushParagraph();
+            flushList();
+            flushTable();
+            inCodeBlock = true;
+          }
+          continue;
+        }
+        if (inCodeBlock) {
+          codeLines.push(rawLine);
+          continue;
+        }
+        const line = rawLine.trim();
+        if (!line) {
+          flushParagraph();
+          flushList();
+          flushTable();
+          continue;
+        }
+        if (/^---+$/.test(line)) {
+          flushParagraph();
+          flushList();
+          flushTable();
+          blocks.push("<hr>");
+          continue;
+        }
+        const heading = line.match(/^(#{1,3})\s+(.+)$/);
+        if (heading) {
+          flushParagraph();
+          flushList();
+          flushTable();
+          const level = heading[1].length;
+          blocks.push("<h" + level + ">" + inlineMarkdown(heading[2]) + "</h" + level + ">");
+          continue;
+        }
+        if (line.startsWith(">")) {
+          flushParagraph();
+          flushList();
+          flushTable();
+          blocks.push("<blockquote>" + inlineMarkdown(line.replace(/^>\s?/, "")) + "</blockquote>");
+          continue;
+        }
+        if (line.startsWith("|") && line.endsWith("|")) {
+          flushParagraph();
+          flushList();
+          tableRows.push(line);
+          continue;
+        }
+        const unordered = line.match(/^[-*]\s+(.+)$/);
+        const ordered = line.match(/^\d+\.\s+(.+)$/);
+        if (unordered || ordered) {
+          flushParagraph();
+          flushTable();
+          const type = ordered ? "ol" : "ul";
+          if (listType && listType !== type) flushList();
+          listType = type;
+          list.push((unordered || ordered)[1]);
+          continue;
+        }
+        flushTable();
+        paragraph.push(line);
+      }
+      flushParagraph();
+      flushList();
+      flushTable();
+      flushCode();
+
+      let html = blocks.join("\n");
+      if (query.trim()) {
+        const safeQuery = escapeRegExp(query.trim());
+        html = html.replace(new RegExp("(" + safeQuery + ")", "gi"), "<mark>$1</mark>");
+      }
+      return html;
+    }
+
+    function escapeRegExp(value) {
+      return value.replace(/[.*+?^$(){}|[\]\\]/g, "\\$&");
+    }
+
+    function filteredChapters() {
+      const query = state.query.trim().toLowerCase();
+      const bookChapters = chapters();
+      if (!query) return bookChapters;
+      return bookChapters.filter((chapter) =>
+        chapter.title.toLowerCase().includes(query) ||
+        chapter.partTitle.toLowerCase().includes(query) ||
+        chapter.markdown.toLowerCase().includes(query)
+      );
+    }
+
+    function renderToc() {
+      const visible = filteredChapters();
+      const groups = new Map();
+      visible.forEach((chapter) => {
+        if (!groups.has(chapter.partKey)) groups.set(chapter.partKey, []);
+        groups.get(chapter.partKey).push(chapter);
+      });
+
+      toc.innerHTML = [...groups.entries()].map(([partKey, group]) => {
+        const items = group.map((chapter) =>
+          '<button class="chapter-button ' + (chapter.id === state.activeId ? "active" : "") + '" data-id="' + chapter.id + '">' +
+            '<span class="chapter-num">' + chapterNumberText(chapter) + '</span>' +
+            '<span>' +
+              '<span class="chapter-name">' + escapeHtml(chapter.title) + '</span>' +
+              '<span class="chapter-meta">' + (Math.round(chapter.wordCount / 100) / 10) + ' 千字</span>' +
+            '</span>' +
+          '</button>'
+        ).join("");
+        return '<div class="part-title">' + escapeHtml(group[0].partTitle) + '</div><div class="chapter-list">' + items + '</div>';
+      }).join("");
+    }
+
+    function renderArticle() {
+      const bookChapters = chapters();
+      const chapter = bookChapters.find((item) => item.id === state.activeId) || bookChapters[0];
+      if (!chapter) return;
+      setView("reader");
+      state.activeId = chapter.id;
+      state.activeBookId = activeBook().id;
+      localStorage.setItem("reader.activeBookId", state.activeBookId);
+      localStorage.setItem("reader.activeId", state.activeId);
+      if (library.singleBook) localStorage.setItem("reader.singleBook.activeId", state.activeId);
+      renderBookPicker();
+      currentTitle.textContent = activeBook().title + " / " + chapter.title;
+      articleMeta.textContent = chapterMetaText(chapter);
+      content.innerHTML = renderMarkdown(chapter.markdown, state.query);
+      applyNoteHighlights(chapter);
+      renderNotes();
+
+      const index = bookChapters.findIndex((item) => item.id === chapter.id);
+      updateNav(prevButton, bookChapters[index - 1], "上一章");
+      updateNav(nextButton, bookChapters[index + 1], "下一章");
+      renderToc();
+      requestAnimationFrame(() => {
+        updateProgress();
+        if (pendingNoteId) {
+          scrollToNote(pendingNoteId);
+          pendingNoteId = "";
+        }
+      });
+    }
+
+    function activeChapter() {
+      return chapters().find((item) => item.id === state.activeId);
+    }
+
+    function notesForActiveBook() {
+      return notes.filter((note) => note.bookId === activeBook().id);
+    }
+
+    function applyNoteHighlights(chapter) {
+      const chapterNotes = notes.filter((note) => note.chapterId === chapter.id && note.selectedText);
+      chapterNotes.forEach((note) => highlightFirstMatch(note.selectedText, note.id));
+    }
+
+    function highlightFirstMatch(text, noteId) {
+      const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+      let node = walker.nextNode();
+      while (node) {
+        const index = node.nodeValue.indexOf(text);
+        if (index >= 0) {
+          const range = document.createRange();
+          range.setStart(node, index);
+          range.setEnd(node, index + text.length);
+          const span = document.createElement("span");
+          span.className = "note-highlight";
+          span.dataset.noteId = noteId;
+          span.title = "查看批注";
+          range.surroundContents(span);
+          return;
+        }
+        node = walker.nextNode();
+      }
+    }
+
+    function renderNotes() {
+      const bookNotes = notesForActiveBook().slice().sort((a, b) => b.createdAt - a.createdAt);
+      if (!bookNotes.length) {
+        noteList.innerHTML = '<div class="chapter-meta">还没有批注。划选正文里的句子就可以写。</div>';
+        return;
+      }
+      noteList.innerHTML = bookNotes.map((note) =>
+        '<button class="note-item" data-note-id="' + note.id + '">' +
+          '<span class="note-quote">' + escapeHtml(note.selectedText.slice(0, 42)) + '</span>' +
+          '<span class="note-text">' + escapeHtml(note.noteText || "无文字批注") + '</span>' +
+          '<span class="chapter-meta">' + escapeHtml(note.chapterTitle || "") + '</span>' +
+        '</button>'
+      ).join("");
+    }
+
+    function scrollToNote(noteId) {
+      const target = content.querySelector('[data-note-id="' + noteId + '"]');
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.animate([{ outlineColor: "transparent" }, { outlineColor: "var(--accent)" }, { outlineColor: "transparent" }], { duration: 1000 });
+    }
+
+    function hideSelectionPopup() {
+      selectionPopup.classList.remove("open");
+      selectedTextForNote = "";
+      noteInput.value = "";
+      selectedPreview.textContent = "";
+      saveNoteButton.disabled = true;
+    }
+
+    function showSelectionPopup(range, selectedText) {
+      selectedTextForNote = selectedText;
+      noteInput.value = "";
+      selectedPreview.textContent = selectedText.length > 120 ? selectedText.slice(0, 120) + "..." : selectedText;
+      saveNoteButton.disabled = true;
+      const rect = range.getBoundingClientRect();
+      const popupWidth = Math.min(360, window.innerWidth - 24);
+      const left = Math.min(window.innerWidth - popupWidth - 12, Math.max(12, rect.left));
+      const bottomTop = rect.bottom + 10;
+      const top = bottomTop > window.innerHeight - 230 ? Math.max(12, rect.top - 230) : bottomTop;
+      selectionPopup.style.left = left + "px";
+      selectionPopup.style.top = top + "px";
+      selectionPopup.classList.add("open");
+      noteInput.focus();
+    }
+
+    function makeImportedChapter(bookId, file, markdown, index) {
+      const h1 = [...markdown.matchAll(/^#\s+(.+)$/gm)].map((match) => match[1].trim());
+      const title = h1[0] || file.name.replace(/\.md$/i, "");
+      return {
+        id: bookId + "-chapter-" + (index + 1),
+        bookId,
+        fileName: file.name,
+        partKey: "imported",
+        partTitle: "导入内容",
+        chapterInPart: index + 1,
+        globalChapter: index + 1,
+        title,
+        markdown,
+        wordCount: Array.from(markdown.replace(new RegExp(String.fromCharCode(96).repeat(3) + "[\\s\\S]*?" + String.fromCharCode(96).repeat(3), "g"), "").replace(/\s/g, "")).length,
+      };
+    }
+
+    async function importMarkdownFiles(fileList) {
+      const files = [...fileList].filter((file) => file.name.toLowerCase().endsWith(".md"));
+      if (!files.length) return;
+      files.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
+      const bookName = window.prompt("给这批 Markdown 起一个书名", files[0].name.replace(/\.md$/i, ""));
+      if (!bookName) return;
+      const bookId = "imported-" + Date.now();
+      const texts = await Promise.all(files.map((file) => file.text()));
+      const chapters = files.map((file, index) => makeImportedChapter(bookId, file, texts[index], index));
+      const book = {
+        id: bookId,
+        title: bookName,
+        description: "浏览器导入",
+        chapters,
+        chapterCount: chapters.length,
+        wordCount: chapters.reduce((total, chapter) => total + chapter.wordCount, 0),
+      };
+      importedBooks.push(book);
+      saveImportedBooks();
+      state.activeBookId = book.id;
+      state.activeId = chapters[0]?.id;
+      renderArticle();
+    }
+
+    function updateNav(button, chapter, label) {
+      button.disabled = !chapter;
+      button.innerHTML = chapter
+        ? '<div class="nav-label">' + label + '</div><div class="nav-title">' + escapeHtml(chapter.title) + '</div>'
+        : '<div class="nav-label">' + label + '</div><div class="nav-title">没有更多章节</div>';
+      button.onclick = () => {
+        if (!chapter) return;
+        state.activeId = chapter.id;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderArticle();
+      };
+    }
+
+    function updateProgress() {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const ratio = max > 0 ? Math.min(100, Math.max(0, (scrollTop / max) * 100)) : 0;
+      progress.style.width = ratio + "%";
+    }
+
+    toc.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-id]");
+      if (!button) return;
+      state.activeId = button.dataset.id;
+      document.body.classList.remove("menu-open");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderArticle();
+    });
+
+    content.addEventListener("mouseup", () => {
+      if (state.view !== "reader") return;
+      const selection = window.getSelection();
+      const selectedText = selection ? selection.toString().trim() : "";
+      if (!selection || !selectedText || selectedText.length < 2) return;
+      if (!content.contains(selection.anchorNode) || !content.contains(selection.focusNode)) return;
+      showSelectionPopup(selection.getRangeAt(0), selectedText);
+    });
+
+    content.addEventListener("mousedown", (event) => {
+      if (!selectionPopup.classList.contains("open")) return;
+      if (event.target.closest("[data-note-id]")) return;
+      hideSelectionPopup();
+    });
+
+    content.addEventListener("click", (event) => {
+      const bookButton = event.target.closest("[data-start-book]");
+      if (bookButton) {
+        state.activeBookId = bookButton.dataset.startBook;
+        state.activeId = chapters()[0]?.id;
+        localStorage.setItem("reader.activeBookId", state.activeBookId);
+        localStorage.setItem("reader.activeId", state.activeId || "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderArticle();
+        return;
+      }
+      const startButton = event.target.closest("[data-start-reading]");
+      if (startButton) {
+        state.activeId = chapters()[0]?.id;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderArticle();
+        return;
+      }
+      const aboutTrigger = event.target.closest("[data-show-about]");
+      if (aboutTrigger) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderAbout();
+        return;
+      }
+      const bookstoreTrigger = event.target.closest("[data-show-bookstore]");
+      if (bookstoreTrigger) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderBookstore();
+        return;
+      }
+      const highlight = event.target.closest("[data-note-id]");
+      if (!highlight) return;
+      const note = notes.find((item) => item.id === highlight.dataset.noteId);
+      if (note) window.alert((note.selectedText || "") + "\n\n" + (note.noteText || "无文字批注"));
+    });
+
+    saveNoteButton.addEventListener("click", () => {
+      const chapter = activeChapter();
+      const noteText = noteInput.value.trim();
+      if (!chapter || !selectedTextForNote || !noteText) {
+        hideSelectionPopup();
+        window.getSelection()?.removeAllRanges();
+        return;
+      }
+      const note = {
+        id: "note-" + Date.now(),
+        bookId: activeBook().id,
+        chapterId: chapter.id,
+        chapterTitle: chapter.title,
+        selectedText: selectedTextForNote,
+        noteText,
+        createdAt: Date.now(),
+      };
+      notes.push(note);
+      saveNotes();
+      pendingNoteId = note.id;
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+      renderArticle();
+    });
+
+    noteInput.addEventListener("input", () => {
+      saveNoteButton.disabled = !noteInput.value.trim();
+    });
+
+    cancelNoteButton.addEventListener("click", () => {
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+    });
+
+    cancelNoteTextButton.addEventListener("click", () => {
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+    });
+
+    selectionPopup.addEventListener("mousedown", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("mousedown", (event) => {
+      if (!selectionPopup.classList.contains("open")) return;
+      if (selectionPopup.contains(event.target)) return;
+      if (content.contains(event.target)) return;
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+    });
+
+    noteList.addEventListener("click", (event) => {
+      const item = event.target.closest("[data-note-id]");
+      if (!item) return;
+      const note = notes.find((entry) => entry.id === item.dataset.noteId);
+      if (!note) return;
+      state.activeBookId = note.bookId;
+      state.activeId = note.chapterId;
+      pendingNoteId = note.id;
+      renderArticle();
+      document.body.classList.remove("menu-open");
+    });
+
+    search.addEventListener("input", () => {
+      state.query = search.value;
+      const first = filteredChapters()[0];
+      if (first && !filteredChapters().some((chapter) => chapter.id === state.activeId)) {
+        state.activeId = first.id;
+      }
+      renderArticle();
+    });
+
+    homeButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderHome();
+    });
+
+    bookstoreButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderBookstore();
+    });
+
+    aboutButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderAbout();
+    });
+
+    publicHomeButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderHome();
+    });
+
+    publicBookstoreButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderBookstore();
+    });
+
+    publicAboutButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderAbout();
+    });
+
+    importButton.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => importMarkdownFiles(fileInput.files));
+    dropZone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      dropZone.classList.add("drag-over");
+    });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+    dropZone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      dropZone.classList.remove("drag-over");
+      importMarkdownFiles(event.dataTransfer.files);
+    });
+
+    bookSelect.addEventListener("change", () => {
+      state.activeBookId = bookSelect.value;
+      state.activeId = chapters()[0]?.id;
+      localStorage.setItem("reader.activeBookId", state.activeBookId);
+      localStorage.setItem("reader.activeId", state.activeId || "");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderView();
+    });
+
+    document.getElementById("increaseFont").addEventListener("click", () => {
+      state.fontSize = Math.min(24, state.fontSize + 1);
+      localStorage.setItem("reader.fontSize", state.fontSize);
+      document.documentElement.style.setProperty("--font-size", state.fontSize + "px");
+    });
+
+    document.getElementById("decreaseFont").addEventListener("click", () => {
+      state.fontSize = Math.max(16, state.fontSize - 1);
+      localStorage.setItem("reader.fontSize", state.fontSize);
+      document.documentElement.style.setProperty("--font-size", state.fontSize + "px");
+    });
+
+    document.getElementById("themeButton").addEventListener("click", (event) => {
+      state.theme = state.theme === "dark" ? "light" : "dark";
+      localStorage.setItem("reader.theme", state.theme);
+      document.documentElement.dataset.theme = state.theme;
+      event.currentTarget.textContent = state.theme === "dark" ? "浅色" : "深色";
+    });
+
+    document.getElementById("menuButton").addEventListener("click", () => {
+      document.body.classList.toggle("menu-open");
+    });
+
+    document.getElementById("notesButton").addEventListener("click", () => {
+      document.body.classList.add("menu-open");
+      noteList.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") hideSelectionPopup();
+    });
+
+    window.addEventListener("scroll", () => {
+      updateProgress();
+      if (selectionPopup.classList.contains("open")) hideSelectionPopup();
+    }, { passive: true });
+    window.addEventListener("resize", updateProgress);
+
+    document.getElementById("themeButton").textContent = state.theme === "dark" ? "浅色" : "深色";
+    if (!chapters().some((chapter) => chapter.id === state.activeId)) {
+      state.activeId = chapters()[0]?.id;
+    }
+    renderBookPicker();
+    renderView();
+  </script>
+</body>
+</html>
