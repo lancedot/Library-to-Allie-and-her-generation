@@ -1374,6 +1374,7 @@ const html = String.raw`<!doctype html>
             '<h2>参考与启发</h2>' +
             '<ul class="source-list">' +
               '<li><a href="https://openai.com/index/malta-chatgpt-plus-partnership/" target="_blank" rel="noreferrer">OpenAI and Malta partner to bring ChatGPT Plus to all citizens</a></li>' +
+              '<li><a href="https://openai.com/academy/how-finance-teams-use-codex/" target="_blank" rel="noreferrer">OpenAI Academy: How finance teams use Codex</a></li>' +
               '<li><button class="text-button" data-start-book="founders-playbook" type="button">Anthropic: The founder&#39;s playbook（AI 翻译稿 / Book 02）</button></li>' +
               '<li><a href="https://www.socratopia.app/" target="_blank" rel="noreferrer">Socratopia: AI-powered Socratic learning</a></li>' +
             '</ul>' +
