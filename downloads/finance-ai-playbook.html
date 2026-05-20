@@ -1,0 +1,1817 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>财务部门的 AI 转型实战手册</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f5ef;
+      --panel: #fffdf8;
+      --panel-strong: #ffffff;
+      --text: #24211b;
+      --muted: #746d60;
+      --line: #ded7c8;
+      --accent: #206a5d;
+      --accent-soft: #e3f1eb;
+      --mark: #fff1a8;
+      --shadow: 0 18px 50px rgba(57, 45, 27, 0.12);
+      --reader-width: 760px;
+      --font-size: 19px;
+      --line-height: 1.88;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #151515;
+      --panel: #202020;
+      --panel-strong: #262626;
+      --text: #eee9de;
+      --muted: #aaa294;
+      --line: #393734;
+      --accent: #7bc8b6;
+      --accent-soft: #17332d;
+      --mark: #6a5818;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    body[data-view="home"] .app,
+    body[data-view="bookstore"] .app,
+    body[data-view="about"] .app {
+      grid-template-columns: 1fr;
+    }
+
+    body[data-view="home"] .sidebar,
+    body[data-view="bookstore"] .sidebar,
+    body[data-view="about"] .sidebar,
+    body[data-view="home"] .topbar,
+    body[data-view="bookstore"] .topbar,
+    body[data-view="about"] .topbar {
+      display: none;
+    }
+
+    .public-nav {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 42px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 8;
+    }
+
+    body[data-view="home"] .public-nav,
+    body[data-view="bookstore"] .public-nav,
+    body[data-view="about"] .public-nav {
+      display: flex;
+    }
+
+    .public-brand {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .public-nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .public-nav .text-button.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px 18px;
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+      overflow: auto;
+    }
+
+    .brand {
+      margin: 0 0 16px;
+      font-size: 20px;
+      line-height: 1.35;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .book-picker {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .book-select {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--text);
+      outline: none;
+      font-weight: 800;
+    }
+
+    .book-description {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .site-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .site-nav .text-button {
+      width: 100%;
+    }
+
+    .site-nav .active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    body.single-book .site-nav,
+    body.single-book .book-picker,
+    body.single-book .import-tools {
+      display: none !important;
+    }
+
+    .import-tools {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .drop-zone {
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      margin-bottom: 14px;
+    }
+
+    .search {
+      width: 100%;
+      min-height: 40px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .part-title {
+      margin: 18px 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .chapter-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .chapter-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .chapter-button:hover,
+    .chapter-button.active {
+      background: var(--accent-soft);
+    }
+
+    .chapter-num {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .chapter-name {
+      min-width: 0;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .chapter-meta {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      padding: 10px 26px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(16px);
+    }
+
+    .current-title {
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .icon-button,
+    .text-button {
+      min-width: 40px;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .icon-button {
+      padding: 0;
+      font-size: 18px;
+    }
+
+    .icon-button:hover,
+    .text-button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .progress-wrap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      height: 3px;
+      background: transparent;
+    }
+
+    .progress {
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width 120ms linear;
+    }
+
+    .reader-shell {
+      padding: 44px 28px 70px;
+    }
+
+    body[data-view="home"] .reader-shell,
+    body[data-view="bookstore"] .reader-shell,
+    body[data-view="about"] .reader-shell {
+      padding: 60px 46px 70px;
+    }
+
+    .reader {
+      width: min(var(--reader-width), 100%);
+      margin: 0 auto;
+      padding: 54px 58px 64px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    body[data-view="home"] .reader,
+    body[data-view="bookstore"] .reader,
+    body[data-view="about"] .reader {
+      width: min(1120px, 100%);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    body[data-view="home"] .search-row,
+    body[data-view="home"] #toc,
+    body[data-view="home"] .notes-panel,
+    body[data-view="bookstore"] .search-row,
+    body[data-view="bookstore"] #toc,
+    body[data-view="bookstore"] .notes-panel,
+    body[data-view="about"] .search-row,
+    body[data-view="about"] #toc {
+      display: none;
+    }
+
+    .article-meta {
+      margin-bottom: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .content {
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Serif CJK SC", serif;
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      word-break: break-word;
+    }
+
+    .content h1,
+    .content h2,
+    .content h3 {
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .content h1 {
+      margin: 0 0 28px;
+      font-size: 34px;
+    }
+
+    .content h2 {
+      margin: 44px 0 16px;
+      font-size: 25px;
+      border-top: 1px solid var(--line);
+      padding-top: 30px;
+    }
+
+    .content h3 {
+      margin: 28px 0 10px;
+      font-size: 20px;
+    }
+
+    .content p {
+      margin: 14px 0;
+    }
+
+    .content blockquote {
+      margin: 24px 0;
+      padding: 14px 18px;
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .content hr {
+      margin: 34px 0;
+      border: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .content ul,
+    .content ol {
+      padding-left: 1.4em;
+    }
+
+    .content table {
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-size: 0.92em;
+      line-height: 1.55;
+    }
+
+    .content th,
+    .content td {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .content th {
+      background: var(--accent-soft);
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .content mark {
+      background: var(--mark);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+
+    .content pre {
+      margin: 24px 0;
+      padding: 16px 18px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      font-family: "Consolas", "Microsoft YaHei", monospace;
+      font-size: 0.86em;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .home-kicker {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .home-title {
+      margin: 0 0 22px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-size: 52px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .home-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 36px;
+      align-items: center;
+      min-height: min(660px, calc(100vh - 150px));
+    }
+
+    .home-copy {
+      min-width: 0;
+    }
+
+    .home-lede {
+      max-width: 680px;
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 21px;
+      line-height: 1.75;
+    }
+
+    .home-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 24px 0 34px;
+    }
+
+    .book-shelf {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 18px;
+      align-self: stretch;
+      align-content: center;
+    }
+
+    .bookstore-title {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+
+    .bookstore-lede {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .book-cover {
+      position: relative;
+      display: grid;
+      align-content: space-between;
+      min-height: 330px;
+      padding: 34px 30px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 92%, var(--accent-soft)), var(--panel-strong));
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .book-cover::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .book-cover:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+
+    .cover-kicker {
+      position: relative;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .cover-title {
+      position: relative;
+      display: block;
+      margin: 46px 0 18px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-size: 34px;
+      line-height: 1.22;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .cover-subtitle {
+      position: relative;
+      display: block;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .cover-footer {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: end;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .source-list a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .source-list a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      width: min(var(--reader-width), 100%);
+      margin: 18px auto 0;
+    }
+
+    .nav-card {
+      min-height: 76px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav-card[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .nav-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .nav-title {
+      margin-top: 6px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .note-highlight {
+      background: color-mix(in srgb, var(--mark) 75%, var(--accent-soft));
+      border-bottom: 2px solid var(--accent);
+      cursor: pointer;
+    }
+
+    .selection-popup {
+      position: fixed;
+      z-index: 30;
+      width: min(360px, calc(100vw - 24px));
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      box-shadow: var(--shadow);
+      display: none;
+      gap: 10px;
+    }
+
+    .selection-popup.open {
+      display: grid;
+    }
+
+    .selection-popup-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .selection-popup-title {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .popup-close {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .popup-close:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .selected-preview {
+      max-height: 72px;
+      overflow: auto;
+      padding: 9px 10px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .note-input {
+      width: 100%;
+      min-height: 88px;
+      resize: vertical;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      line-height: 1.5;
+    }
+
+    .popup-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .text-button[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      color: var(--muted);
+      border-color: var(--line);
+    }
+
+    .notes-panel {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .notes-title {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .note-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .note-item {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-strong);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .note-quote {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .note-text {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 20;
+        width: min(84vw, 330px);
+        transform: translateX(-105%);
+        transition: transform 180ms ease;
+        box-shadow: var(--shadow);
+      }
+
+      body.menu-open .sidebar {
+        transform: translateX(0);
+      }
+
+      .mobile-menu {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .topbar {
+        padding: 10px 12px;
+      }
+
+      .reader-shell {
+        padding: 20px 12px 46px;
+      }
+
+      body[data-view="home"] .reader-shell,
+      body[data-view="bookstore"] .reader-shell,
+      body[data-view="about"] .reader-shell {
+        padding: 24px 16px 46px;
+      }
+
+      .reader {
+        padding: 30px 20px 42px;
+      }
+
+      .content h1 {
+        font-size: 28px;
+      }
+
+      .content h2 {
+        font-size: 22px;
+      }
+
+      .home-title {
+        font-size: 34px;
+      }
+
+      .home-lede {
+        font-size: 18px;
+      }
+
+      .home-layout {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        gap: 28px;
+      }
+
+      .public-nav {
+        padding: 14px 14px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .public-nav-links {
+        width: 100%;
+      }
+
+      .public-nav .text-button {
+        flex: 1;
+      }
+
+      .book-shelf {
+        grid-template-columns: 1fr;
+      }
+
+      .book-cover {
+        min-height: 300px;
+      }
+
+      .selection-popup {
+        left: 12px !important;
+        right: 12px;
+        bottom: 12px;
+        top: auto !important;
+        width: auto;
+      }
+
+      .footer-nav {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-wrap" aria-hidden="true"><div class="progress" id="progress"></div></div>
+  <nav class="public-nav" aria-label="站点导航">
+    <div class="public-brand">Library to Allie and her generation</div>
+    <div class="public-nav-links">
+      <button class="text-button" id="publicHomeButton" type="button">首页</button>
+      <button class="text-button" id="publicBookstoreButton" type="button">书城</button>
+      <button class="text-button" id="publicAboutButton" type="button">关于</button>
+    </div>
+  </nav>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <h1 class="brand" id="libraryTitle">财务部门的 AI 转型实战手册</h1>
+      <div class="site-nav">
+        <button class="text-button" id="homeButton" type="button">首页</button>
+        <button class="text-button" id="bookstoreButton" type="button">书城</button>
+        <button class="text-button" id="aboutButton" type="button">关于</button>
+      </div>
+      <div class="book-picker" id="bookPicker">
+        <select class="book-select" id="bookSelect" aria-label="选择书籍"></select>
+        <div class="book-description" id="bookDescription"></div>
+      </div>
+      <div class="import-tools" id="importTools">
+        <button class="text-button" id="importButton" type="button">导入 MD 成书</button>
+        <input class="hidden-input" id="fileInput" type="file" accept=".md,text/markdown,text/plain" multiple>
+        <div class="drop-zone" id="dropZone">拖一批 Markdown 到这里</div>
+      </div>
+      <div class="search-row">
+        <input class="search" id="search" type="search" placeholder="搜索章节或正文" autocomplete="off">
+      </div>
+      <nav id="toc" aria-label="章节目录"></nav>
+      <section class="notes-panel" aria-label="批注">
+        <h2 class="notes-title">批注</h2>
+        <div class="note-list" id="noteList"></div>
+      </section>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="menuButton" title="目录" aria-label="目录">☰</button>
+        <div class="current-title" id="currentTitle"></div>
+        <div class="toolbar">
+          <button class="icon-button" id="decreaseFont" title="减小字号" aria-label="减小字号">A-</button>
+          <button class="icon-button" id="increaseFont" title="增大字号" aria-label="增大字号">A+</button>
+          <button class="text-button" id="notesButton">批注</button>
+          <button class="text-button" id="themeButton">深色</button>
+        </div>
+      </header>
+      <section class="reader-shell">
+        <article class="reader">
+          <div class="article-meta" id="articleMeta"></div>
+          <div class="content" id="content"></div>
+        </article>
+        <div class="footer-nav" id="footerNav">
+          <button class="nav-card" id="prevButton"></button>
+          <button class="nav-card" id="nextButton"></button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="selection-popup" id="selectionPopup">
+    <div class="selection-popup-head">
+      <p class="selection-popup-title">添加批注</p>
+      <button class="popup-close" id="cancelNoteButton" type="button" aria-label="取消批注">×</button>
+    </div>
+    <div class="selected-preview" id="selectedPreview"></div>
+    <textarea class="note-input" id="noteInput" placeholder="写下这句话旁边的想法"></textarea>
+    <div class="popup-actions">
+      <button class="text-button" id="cancelNoteTextButton" type="button">取消</button>
+      <button class="text-button" id="saveNoteButton" type="button" disabled>保存</button>
+    </div>
+  </div>
+
+  <script id="library-data" type="application/json">{"title":"财务部门的 AI 转型实战手册","authorTools":false,"singleBook":true,"books":[{"id":"finance-ai-playbook","title":"财务部门的 AI 转型实战手册","author":"刘晃（Alex Liu）","description":"一个财务人从真实场景出发，写给财务团队的 AI 转型实战 Playbook。","singleOutput":"downloads/finance-ai-playbook.html","chapters":[{"id":"finance-ai-playbook-part-1-1","bookId":"finance-ai-playbook","fileName":"Finance_AI_Playbook_Introduction.md","partKey":"part-1","partTitle":"开篇","chapterInPart":1,"globalChapter":0,"numberLabel":"引","metaLabel":"引言","title":"关于这本手册","markdown":"# 关于这本手册\n\n**作者：刘晃（Alex Liu）**\n\n**2026年**\n\n---\n\n这不是一份技术手册，也不是一份方法论清单。\n\n它是一个财务人走过这条路之后，把走过的路记下来的东西。\n\n有些地方还在摸索，有些工具还在迭代，有些判断可能在六个月后需要更新。但这里写的每一件事，都是真实发生过的——真实的场景，真实的决策，真实的坑。\n\n希望它能成为你的垫脚石。\n","wordCount":168},{"id":"finance-ai-playbook-part-2-1","bookId":"finance-ai-playbook","fileName":"Finance_AI_Playbook_Ch1.md","partKey":"part-2","partTitle":"正文","chapterInPart":1,"globalChapter":1,"numberLabel":"","metaLabel":"","title":"第一章：财务 AI 的三条路","markdown":"# 第一章：财务 AI 的三条路\n\n> 读完这章，你会知道为什么大多数财务部门卡在原地，以及真正的转型从哪里开始。\n\n---\n\n## 一个让我印象深刻的失败\n\n有一段时间，我非常认真地相信\"AI-native 工作流\"这个概念。\n\n那时候，这个词开始在各种场合出现——会议上有人提，文章里有人写，大家都在说财务部门即将被彻底颠覆，一切重复性工作都会消失，人只需要做判断和决策。\n\n听起来很对。我想知道怎么做到。\n\n所以我去问 AI。\n\n我把我们财务部门的情况描述给它，问它：如果要实现真正的 AI-native 工作流，我应该从哪里开始？\n\nAI 给了我一个很好看的框架。有层次，有逻辑，读起来头头是道。\n\n但当我试图把那个框架落地的时候，我发现：**它没有办法告诉我，在我们这个具体的系统、这个具体的数据架构、这个具体的团队里，第一步应该做什么。**\n\n概念是对的，路径是空的。\n\n那一刻我意识到：这条路，没有人能替我走。\n\n---\n\n## 三条路，大多数人在第一条\n\n在我开始摸索之后，我观察到财务部门在 AI 转型上，走的其实是三条路。\n\n不是三个阶段，是三种选择——因为有些人一直留在第一条路上，从来没有走到第二条和第三条。\n\n### 第一条路：修补\n\n在现有的工作方式上，加一点 AI。\n\n写报告之前，先让 AI 起个草。整理会议记录的时候，让 AI 做个摘要。分析一段数据，让 AI 帮忙解读。\n\n这没有什么不对。这些事情 AI 确实能做，而且能帮你省时间。\n\n但修补有一个根本性的局限：**你的工作流没有变，AI 只是在原来的工作流里做了一些替换。**\n\n效率提升是真实的，但有天花板。因为你提升的，只是流程里的某几个点，而不是整个流程的设计逻辑。\n\n大多数财务部门，现在处于这个阶段。用了 AI，但用法是：有问题去问一下，有任务让它帮一下，然后继续按原来的方式工作。\n\n---\n\n### 第二条路：颠覆\n\n有一段时间，我想过彻底不一样的方式。\n\n如果不是在现有流程里加 AI，而是从零开始重新设计——假设 AI 已经无所不能，财务部门应该是什么样子？\n\n这个方向很诱人，也确实打开了一些思路。\n\n但我很快发现了它的问题：**现实不允许你从零开始。**\n\n系统还在跑，数据还要出，报告还要交。你没有办法暂停整个财务部门的运作，等你把\"理想中的 AI-native 工作流\"设计完再重启。\n\n颠覆式的想象，有时候是必要的——它帮你看清楚方向。但它不是一个可以直接执行的路径。\n\n---\n\n### 第三条路：重塑\n\n重塑，不是修补，也不是颠覆。\n\n它是这样一种方式：**在现有系统能运转的前提下，一步一步地把工作流的底层逻辑改掉。**\n\n不是替换某几个动作，而是改变\"谁做什么、怎么触发、结果怎么流转\"的整体设计。\n\n重塑的节奏是慢的，但每一步都是真实的进展。而且每一步做完，它就稳定在那里——不会因为某个工具换了版本就失效，因为它已经变成了你工作流的基础设施。\n\n这是我最终选择的路，也是这本 Playbook 试图描述的路。\n\n---\n\n## 为什么大多数财务部门卡在修补？\n\n有几个真实的原因，不是借口，是障碍。\n\n**数据太敏感，不敢放。**\n财务数据是公司最核心的机密，同时受到最严格的合规要求。第一反应是\"不能随便用 AI 处理\"，这个直觉是对的，但很多团队因此停在了\"不知道什么能用\"的状态，什么都不用。\n\n**系统太封闭，连不上。**\n很多财务系统是十年前的架构，没有 API，没有批量导出，数据被锁在里面出不来。AI 再强，没有数据就没有办法工作。\n\n**流程太复杂，说不清。**\n财务流程涉及的规则、例外、判断节点非常多。要让 AI 参与进来，首先要把流程说清楚——但很多流程是\"靠经验判断，没有文档\"的状态，说清楚本身就是一件难事。\n\n**没有人知道从哪里开始。**\nAI-native 工作流的概念很好，但没有一个针对财务场景的、具体的、可以执行的起点。问 AI，它给你框架；问顾问，他们给你方法论；没有人告诉你，在你这个具体的系统和团队里，第一步做什么。\n\n这四个障碍，Part III 接下来的章节会一一处理。\n\n但在进入具体方法之前，有一件事需要先说清楚。\n\n---\n\n## 财务 AI 的特殊性：四个不能忽视的约束\n\n财务场景有四个特质，使得它在 AI 应用上，需要比其他职能更谨慎、更系统。\n\n**约束一：数字有法律效力**\n\n财务数字不只是信息。它们出现在财务报表、税务申报、合同、监管报告里——一旦错了，后果不只是\"数据不准\"，而是审计风险、税务风险、法律责任。\n\n这意味着：财务场景的 AI 输出验证要求，比任何其他职能都高一个量级。\n\n**约束二：强监管环境**\n\n会计准则、税法、上市公司信息披露要求、行业监管……财务工作在一个高度规则化的环境里运作。AI 的使用，必须在这个框架里发生，不能绕过它。\n\n**约束三：数据极度敏感**\n\n财务数据是公司最核心的机密之一。未授权的数据流转，不只是合规问题，可能直接触发法律风险。\n\n这决定了财务 AI 工具的选型，必须把数据安全放在第一位，而不是功能第一位。\n\n**约束四：审计可追溯**\n\n财务工作天然需要留痕。任何 AI 参与的环节，都必须能在审计时说得清楚：这个数字是怎么来的，经过了什么处理，谁做了最终确认。\n\n这四个约束，不是阻止你用 AI 的理由，而是在告诉你：**财务 AI 的设计，必须把这四件事内建进去，不能事后补丁。**\n\n---\n\n## 这本 Playbook 的逻辑\n\n接下来的章节，会按照这条线展开：\n\n**第二章** — 从识别重复开始，把手工操作变成可靠的自动化，再把自动化变成 AI 可以调用的基础设施。这是重塑的地基。\n\n**第三章** — 双入口设计：为什么同一套工具，需要同时支持人类点击和 Agent 调用。这是让不同成熟度的员工都能用起来的关键。\n\n**第四章** — AI 提问，人澄清，数据说话。财务分析里，人和 AI 各自负责什么，边界在哪里。\n\n**第五章** — 财务 AI 的红线。比通用版更严格的边界，以及如何在合规框架内使用 AI。\n\n**第六章** — 三个真实场景的完整流程。不是案例研究，是可以直接参考的操作路径。\n\n---\n\n## 📌 本章要点卡\n\n1. 财务 AI 转型有三条路：**修补、颠覆、重塑**——大多数人卡在修补，重塑是真正可持续的路径\n2. 卡住的原因不是能力问题，是**四个真实障碍**：数据敏感、系统封闭、流程说不清、没有起点\n3. 财务场景有四个特殊约束：**数字法律效力、强监管、数据敏感、审计追溯**——这四件事必须内建进设计，不能事后补\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 诚实评估你的团队：**现在在三条路里的哪一条？** 是真的在重塑，还是以为自己在重塑，其实还在修补？\n- [ ] 列出你们财务部门目前最大的一个**重复性手工操作**——这会是第二章的起点\n- [ ] 对照四个约束，想想你们现在的 AI 使用方式，**哪个约束目前处理得最不够？**\n\n---\n\n*下一章：把重复变成基础设施——从手工操作到 AI 可调用的工具*\n\n\n---\n","wordCount":2711},{"id":"finance-ai-playbook-part-2-2","bookId":"finance-ai-playbook","fileName":"Finance_AI_Playbook_Ch2.md","partKey":"part-2","partTitle":"正文","chapterInPart":2,"globalChapter":2,"numberLabel":"","metaLabel":"","title":"第二章：把重复变成基础设施","markdown":"# 第二章：把重复变成基础设施\n\n> 读完这章，你会明白如何把财务部门的手工重复操作，一步一步变成 AI 可以调用的标准化能力。\n\n---\n\n## 从一个真实的烦恼开始\n\n财务部门有一类工作，每个人都做过，每个人都烦过：\n\n定时去系统里导报表。\n\n每个月固定时间，登进去，点几下，等它生成，下载，改文件名，放到对应的文件夹。如果管的主体多，这件事要做十几遍。有时候系统卡，有时候忘了，有时候导出来的格式不对还要手动处理。\n\n这件事本身没有任何业务价值，但它每个月都必须发生，而且必须由人来做——或者说，过去必须由人来做。\n\n这类工作，就是我们要改造的第一类目标。\n\n---\n\n## 识别\"待封装的能力\"\n\n财务部门的重复操作，大概可以分三类：\n\n**第一类：从外部系统抓数据**\n\n税务局网站的发票信息、海关数据、监管报送平台的状态——这些数据存在于各种政府或第三方系统里，没有 API，只能人工登录操作。\n\n这类任务的特点：步骤固定，判断少，频率高，但需要人守着。\n\n**第二类：从内部系统导报表**\n\n财务系统里的各类报表，按月、按季、按需导出。如果系统没有批量导出功能，或者无法直接连数据库，管理主体一多，就是大量重复点击。\n\n这类任务的特点：完全可以描述清楚每一步，没有任何需要人判断的地方。\n\n**第三类：从数仓取数**\n\n如果已经有数据仓库，这类任务最接近标准化——本质上是把 SQL 查询封装好，按需触发，结果输出到指定位置。\n\n这三类任务，有一个共同特征：**它们现在消耗人的时间，但人在这个过程里没有贡献任何判断力。**\n\n这就是\"待封装的能力\"的识别标准——**不需要人判断，只需要人执行的任务，都是待封装的能力。**\n\n---\n\n## 第一步：用 RPA 固化重复操作\n\n识别出目标之后，第一步是把这些操作固化成可以自动运行的脚本。\n\n这就是 RPA（Robotic Process Automation，机器人流程自动化）的用武之地。\n\nRPA 的本质：**用软件模拟人的操作——打开浏览器、点击按钮、填写表单、下载文件——然后把这个过程录制下来，自动重复执行。**\n\n### 用 Codex / Claude Code 写 RPA 脚本\n\n过去，写 RPA 脚本需要专业的开发人员。2026年，这件事已经可以用 Coding Agent 来做。\n\n**实际流程：**\n\n1. 把你要自动化的操作描述清楚：目标网站或系统、操作步骤、需要抓取或下载的内容、存储位置\n2. 把这些描述输入 Codex 或 Claude Code，让它生成脚本\n3. 在测试环境里运行，检查结果，告诉 Coding Agent 哪里不对\n4. 迭代修改，直到脚本稳定运行\n\n**以税务局发票数据为例，你给 Codex 的描述大概是这样的：**\n\n```\n帮我写一个 Python 脚本，实现以下操作：\n1. 打开[税务局网站]，用账号密码登录\n2. 进入\"发票查询\"页面，按月份筛选上个月的数据\n3. 下载查询结果为 Excel 文件\n4. 把文件重命名为\"发票数据_YYYYMM.xlsx\"，保存到指定路径\n5. 如果下载失败，发送一条错误通知\n\n登录信息和路径通过配置文件读取，不要硬编码在脚本里。\n```\n\n这个描述，Codex 能给你一个可以运行的初版脚本。你在测试中发现问题，继续在对话里告诉它，迭代修改。\n\n**重要提醒：** 脚本里涉及账号密码的部分，不要直接写进代码——通过配置文件或环境变量管理。这是基本的安全实践。\n\n### 两种 RPA 路径\n\n从实际操作经验来看，RPA 脚本有两条路：\n\n**API 路径（优先选择）：** 如果目标系统有 API，通过 API 取数是最稳定的方式。系统界面变了不影响脚本，速度快，错误处理也更干净。\n\n**网页巡检路径（系统没有 API 时的替代方案）：** 用脚本模拟浏览器操作。这条路有一个固有风险：目标网站的界面一旦更新，脚本可能就失效了，需要维护。把它理解成\"过渡方案\"，等目标系统开放 API 之后，迁移过去。\n\n---\n\n## 第二步：用 MCP 把 RPA 变成 AI 可调用的工具\n\nRPA 脚本跑通之后，它还只是一个\"定时自动执行的程序\"——员工需要手动触发，或者等定时任务自动运行。\n\n下一步，是把这些脚本封装成 AI 可以调用的工具。\n\n这就是 **MCP（Model Context Protocol）** 的作用。\n\n**MCP 是什么：** 一个开放协议，让 AI 模型可以标准化地调用外部工具和数据源。把你的 RPA 脚本封装成 MCP 服务之后，AI Agent 就可以像调用一个函数一样，触发这个脚本的执行。\n\n**封装之后发生了什么：**\n\n员工不再需要知道脚本在哪里、怎么运行。他们只需要告诉 AI：\"把上个月的发票数据下载下来放到公盘\"——AI 调用 MCP 服务，触发脚本，脚本执行，文件出现在公盘。\n\n从\"员工手动操作系统\"，变成了\"员工向 AI 下达指令，AI 调用工具完成操作\"。\n\n**除了 RPA 封装，还可以封装什么：**\n\n- **财务信息查询：** 把财务系统里常用的查询封装成 MCP 服务。员工问\"这个供应商今年的应付账款余额是多少\"，AI 直接查系统返回结果，而不是让员工自己登系统查\n- **数仓取数：** 把常用的 SQL 查询封装好，按参数触发，结果直接返回给 AI\n- **文件操作：** 从公盘读取、写入、整理文件，成为 AI 工作流里的标准动作\n\n---\n\n## 第三步：双入口设计\n\n工具封装好之后，需要考虑一个实际问题：**不同成熟度的员工，怎么用这套工具？**\n\n有的员工习惯用 AI，有的员工不习惯，有的员工处于过渡阶段。如果只有一个入口——比如只能通过 Agent 调用——不习惯的员工就用不起来。\n\n解决方案是**双入口设计**：\n\n**入口一：网页界面（人类友好入口）**\n\n做一个简单的网页界面，把常用操作做成按钮或表单。员工点击\"导出上月报表\"，后台触发对应的工具，结果送到公盘。\n\n这个入口，完全不需要员工了解 AI 或 Agent，只要会点击就能用。\n\n**入口二：Agent 入口（AI 原生入口）**\n\n通过 Agent，员工用自然语言下达指令，Agent 判断意图，调用对应的 MCP 工具完成任务。\n\n这个入口，适合已经习惯和 AI 交互的员工，或者需要组合多个操作的复杂指令。\n\n**两个入口的关键：** 它们调用的是同一套工具，只是触发方式不同。基础设施只需要建一次，两个入口共享。\n\n这个设计解决了一个组织转型中的真实矛盾：**你不能等所有人都准备好了再开始，但你也不能强迫所有人同时切换。** 双入口让不同进度的人都能用起来，而不是只有\"先进\"的那部分人在受益。\n\n---\n\n## RPA 的三个原则：不只是点得快\n\n很多人把 RPA 理解成\"让机器点得更快\"。\n\n在简单场景里这没有问题。但在财务这个高风险场景里，**自动化最重要的不是速度，而是可信**。\n\n一个可信的 RPA，需要满足三条原则：\n\n**原则一：要记录**\n\n每一个自动化动作，都要留下证据。\n\n脚本运行了，下载了什么文件，存到了哪里，有没有报错——这些都要有日志记录。最好还有关键步骤的截图或状态变化记录。\n\n原因很简单：财务场景出了问题，你需要能说清楚\"脚本在这一步做了什么\"，而不是\"我以为它跑成功了\"。\n\n**原则二：要暂停**\n\n不是所有步骤都适合一口气跑到底。\n\n涉及提交、不可逆操作的节点，脚本应该在这里停下来，等人确认之后再继续。这不是因为 AI 不可信，而是因为这类操作本身就需要人的最终授权——自动化不改变这个事实。\n\n**原则三：要承认边界**\n\nRPA 能做的是：按固定步骤操作界面、下载文件、填写表单。\n\nRPA 做不到的是：理解操作背后的业务逻辑、判断结果是否合理、在系统报错时知道该怎么办。\n\n能点按钮，不等于理解后台业务规则。这个边界要在脚本设计阶段就明确——哪些情况应该停下来让人处理，而不是靠脚本自己猜。\n\n一句话总结：**好的 RPA 是\"带证据的重复劳动接力\"——机器做重复动作，人保留关键判断。**\n\n---\n\n## 整条路的全貌\n\n把三个步骤放在一起，这条路的全貌是：\n\n```\n手工重复操作\n    ↓ 识别\"不需要人判断的任务\"\nRPA 脚本（用 Codex / Claude Code 生成）\n    ↓ 稳定运行后封装\nMCP 工具（AI 可以调用的标准化接口）\n    ↓ 部署双入口\n网页入口  +  Agent 入口\n    ↓ 员工使用\n人只负责下指令和验证结果\n```\n\n走完这条路，原来需要人手动做的那些重复操作，变成了基础设施——可以随时被调用，不依赖某个人记得去做，也不需要某个人守在那里等它跑完。\n\n---\n\n## 一个需要说清楚的期望管理\n\n这条路不是一蹴而就的。\n\n**RPA 脚本需要维护。** 目标系统更新了界面，脚本可能失效。特别是网页巡检类的脚本，维护成本比 API 调用高得多。把维护时间算进去，才是真实的投入产出。\n\n**MCP 封装需要一定技术基础。** 不是说员工自己做不到，但需要有人（可能是你自己，可能是技术同事，可能是 Coding Agent）来负责封装和维护这层。\n\n**双入口的网页界面需要开发。** 好消息是，Codex 可以帮你做这件事，不需要专业前端开发人员。坏消息是，它仍然需要时间和迭代。\n\n把这些成本如实估进去，这条路仍然是值得走的——因为一旦基础设施搭好，它带来的效率提升是持续的，不是一次性的。\n\n---\n\n## 📌 本章要点卡\n\n1. 识别待封装能力的标准：**不需要人判断、只需要人执行的任务**——这类任务都是候选\n2. 三步路径：**RPA固化 → MCP封装 → 双入口部署**——每一步都有独立价值，不需要一次全部到位\n3. 双入口解决真实矛盾：**不同成熟度的员工可以共存**，基础设施只建一次，两个入口共享\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 列出你们财务部门**每月重复频率最高的三个手工操作**，对照\"不需要人判断\"这个标准，哪些是候选？\n- [ ] 选最简单的那个，试着用 Codex 或 Claude Code **写一个初版脚本**——不需要完美，能跑起来就算成功\n- [ ] 想想你们团队里**最不习惯用 AI 的那个人**——如果要让他也能用上这套工具，网页入口应该长什么样？\n\n---\n\n*下一章：AI 提问，人澄清，数据说话——财务分析的人机分工框架*\n\n\n---\n","wordCount":3671},{"id":"finance-ai-playbook-part-2-3","bookId":"finance-ai-playbook","fileName":"Finance_AI_Playbook_Ch3.md","partKey":"part-2","partTitle":"正文","chapterInPart":3,"globalChapter":3,"numberLabel":"","metaLabel":"","title":"第三章：AI 提问，人澄清，数据说话","markdown":"# 第三章：AI 提问，人澄清，数据说话\n\n> 读完这章，你会有一个清晰的财务分析人机分工框架——知道哪些交给 AI，哪些必须由人来做。\n\n---\n\n## 一个看起来很简单的问题\n\n\"这个月的差旅费为什么增加了？\"\n\n这个问题，财务人员每个月都会被问到，或者自己也会问。\n\n你可能觉得：给 AI 这个问题，它应该能回答。毕竟数据都在那里。\n\n但事实是：**AI 能告诉你差旅费增加了多少、哪个部门增加最多、和去年同期相比增幅是多少——但它没有办法告诉你为什么。**\n\n\"为什么\"的答案，在数据之外。它在项目经理的脑子里，在业务部门刚刚做的那个决定里，在上个月临时批了一批出差申请的那封邮件里。\n\nAI 看得见数字，看不见业务现实。\n\n这个洞察，是整个财务分析人机分工框架的起点。\n\n---\n\n## 财务分析的两个层次\n\n财务分析，从本质上可以分成两个层次：\n\n**数据层：** 数字是什么，变化了多少，和什么对比，趋势是怎样的，ROI 是多少，偏差有多大。\n\n**业务层：** 为什么是这个数字，数字背后发生了什么，这个趋势意味着什么，应该怎么应对。\n\n**AI 在数据层，表现非常可靠。**\n\n计算、对比、趋势识别、异常标注、ROI 测算——这些都是结构化的、可以精确描述的任务。配有代码执行能力的 AI，在这些任务上准确率高，速度快，而且不会因为工作量大而出错。\n\n**AI 在业务层，无法替代人。**\n\n因为业务层的答案不在数据里。它需要和业务部门沟通，需要了解组织内部正在发生的事情，需要判断哪个解释是真实原因而不只是表面相关。\n\n这两个层次的分工，就是这一章的核心框架。\n\n---\n\n## 框架：AI 提问，人澄清，数据说话\n\n把这个分工具体化，是这样一个三步循环：\n\n### 第一步：数据说话\n\nAI 处理数据，生成结构化的分析结果。\n\n这一步，AI 做的事情包括：\n- 按维度汇总数据（部门、项目、科目、时间段）\n- 计算关键指标（增减额、增减率、占比、ROI）\n- 和基准对比（预算 vs 实际、同比、环比）\n- 标注异常（超预算、偏离趋势、数据缺失）\n- 生成可视化报表（图表、穿透表格）\n\n输出的结果，是一份结构清晰的数据摘要——数字准确，维度完整，异常已经标注出来。\n\n**关键原则：** 这一步的输出，只描述\"是什么\"，不解释\"为什么\"。AI 不要在这一步给出业务解读，因为它没有足够的信息做出可靠的解读。\n\n---\n\n### 第二步：AI 提问\n\n基于数据层的分析，AI 生成一份\"需要澄清的问题清单\"。\n\n这是这个框架里最有价值、也最容易被低估的一步。\n\nAI 的问题，来自它观察到的数据异常和模式：\n- \"差旅费同比增加38%，主要集中在华南区域。是否有特定项目导致了这个增加？\"\n- \"研发费用在Q3出现了一次性支出，金额是全年预算的21%。这笔支出的业务背景是什么？\"\n- \"应收账款周转天数从45天增加到67天。是回款政策变化，还是特定客户的付款延迟？\"\n\n这些问题，AI 自己回答不了——但它能把\"值得去问的问题\"系统性地列出来，而不是让财务人员凭经验去猜哪里有问题。\n\n**一个提示词框架，用于生成问题清单：**\n\n```\n基于以下数据分析结果，请生成一份需要向业务部门澄清的问题清单。\n\n要求：\n- 只提出数据本身无法解释的问题\n- 每个问题要说明：观察到什么现象、为什么需要澄清\n- 按优先级排序（对财务结果影响最大的问题排在前面）\n- 不要自己猜测答案，只提问\n\n数据分析结果：[粘贴AI生成的数据摘要]\n```\n\n---\n\n### 第三步：人澄清\n\n财务人员带着 AI 生成的问题清单，去和业务部门沟通。\n\n这一步，是人不可替代的地方：\n\n**判断哪个问题最重要。** AI 按数据影响大小排了优先级，但你知道哪个问题在政治上敏感，哪个部门负责人最好在什么时机沟通，哪个问题可能引发更大的讨论。\n\n**获取数据之外的信息。** 业务部门的回答，往往不是一个数字，而是一段背景——\"因为我们在Q3拿下了一个新项目，差旅是为了客户拜访\"。这类信息，AI 没有办法自己获取。\n\n**做出判断。** 听完业务部门的解释，你来判断：这个解释合理吗？需要进一步核实吗？这对财务预测有什么影响？\n\n澄清完成之后，把业务部门的回答输入给 AI，让它更新分析结论，生成最终的财务解读。\n\n---\n\n## 可视化报表：让数据说话的载体\n\n这个框架需要一个展示数据的载体，让\"数据说话\"这一步的结果，能被清晰地看见和穿透。\n\n这就是可视化管理报表的作用。\n\n一个好的财务可视化报表，需要满足三个要求：\n\n**第一：看得见异常。** 不只是展示数字，而是把异常自动标注出来——超预算的用红色，同比大幅波动的用标注，这样财务人员不需要逐行扫描，能直接看到哪里值得关注。\n\n**第二：能穿透到底层数据。** 看到汇总数字有异常，可以点击下钻，看到是哪个部门、哪个项目、哪笔具体支出导致的。这个穿透能力，是把\"数据层\"和\"业务层\"连接起来的桥梁。\n\n**第三：AI 框架性分析基于事实。** 报表里的 AI 解读，约束它只能基于数据事实——\"差旅费增加38%，主要来自华南区域\"，而不是\"差旅费增加可能是因为……\"。业务解读，留给人去做。\n\n**关于工具：** 用 Codex 可以开发这类可视化报表——给它你的数据结构和展示需求，它能生成可以直接部署的前端应用。不需要专业前端开发，但需要你能清楚地描述你想要什么。\n\n---\n\n## 这个框架的边界\n\n诚实地说，这个框架有它适用的范围，也有它不适用的地方。\n\n**适用的场景：**\n- 定期的管理报告（月度、季度财务回顾）\n- 预算 vs 实际的差异分析\n- 成本结构分析\n- ROI 测算和对比\n- 异常检测和预警\n\n**不适用的场景：**\n- 需要主观判断的估值（企业并购估值、资产减值测试）\n- 涉及会计政策选择的判断（这类判断有法律责任，不能外包给 AI）\n- 需要行业专业知识的分析（AI 的行业理解停留在通用层面）\n- 高度政治敏感的财务决策（谁来承担成本超支的责任）\n\n**判断标准很简单：如果你不敢在审计师面前说\"这个结论是 AI 给的\"，那就不要让 AI 做这个结论。**\n\n---\n\n## 一个完整的月度财务回顾流程\n\n把这一章的所有内容放在一起，一个 AI 辅助的月度财务回顾可以这样运作：\n\n**第1-2天：数据准备（AI + RPA）**\n自动从财务系统导出数据（参考第二章的基础设施），AI 做初步清洗和结构化处理。\n\n**第3天：数据分析（AI）**\n按维度汇总，计算关键指标，标注异常，生成可视化报表，输出问题清单。\n\n**第4-5天：业务澄清（人）**\n财务人员带着问题清单，和各业务部门沟通，收集业务背景和解释。\n\n**第6天：分析结论（人 + AI）**\n把业务澄清的结果输入给 AI，AI 更新数据解读，人做最终的判断和措辞，生成报告初稿。\n\n**第7天：审核和发布（人）**\n财务负责人审核报告，确认数字准确、解读合理、措辞得当，发布。\n\n这个流程，不是在用 AI 替代财务人员，而是在让财务人员把时间花在真正需要人的地方——业务沟通和最终判断，而不是数据处理和报表格式。\n\n---\n\n## 📌 本章要点卡\n\n1. 财务分析有两个层次：**数据层（AI可靠）和业务层（人不可替代）**——这个分工，是所有财务AI应用的基础\n2. 三步循环：**数据说话 → AI提问 → 人澄清**——AI做的最有价值的事之一，是生成\"值得去问的问题\"\n3. 约束AI只说事实：**报表里的AI解读只描述\"是什么\"**，\"为什么\"留给人和业务部门去回答\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 找一份你最近做的差异分析，试着把数据给 AI，让它**生成一份问题清单**——看看它问的问题，有没有你自己没想到的角度\n- [ ] 检查你们现在的管理报表：**AI 的解读有没有在做业务猜测？** 如果有，加一条约束：\"只描述数据事实，不解释业务原因\"\n- [ ] 想一想你下个月的财务回顾：**哪些环节可以用这一章的框架来重新设计？**\n\n---\n\n*下一章：财务 AI 的红线——比通用版更严格的边界*\n\n\n---\n","wordCount":2968},{"id":"finance-ai-playbook-part-2-4","bookId":"finance-ai-playbook","fileName":"Finance_AI_Playbook_Ch4.md","partKey":"part-2","partTitle":"正文","chapterInPart":4,"globalChapter":4,"numberLabel":"","metaLabel":"","title":"第四章：自动化之前，先让流程可见","markdown":"# 第四章：自动化之前，先让流程可见\n\n> 读完这章，你会明白为什么\"先把流程写下来\"，是所有自动化的真正第一步。\n\n---\n\n## 一个很常见的误解\n\n一提到 AI 和自动化，很多人的第一反应是：**赶快写代码，让它跑起来。**\n\n这个直觉可以理解——AI 现在确实能很快生成脚本、搭建工作流、部署工具。但在财务场景里，这个顺序往往会带来麻烦。\n\n因为有一件事被跳过了：**把流程从脑子里拿出来。**\n\n---\n\n## 流程在哪里？\n\n财务部门的很多流程，不存在于任何文档里。\n\n它存在于老员工的脑子里，存在于\"我们一直这么做\"的习惯里，存在于聊天记录和零散的邮件附件里。\n\n这会带来几个实际问题：\n\n**换人就断。** 某个人离职，那个流程就不知道该怎么走了，或者走错了也没人发现。\n\n**交接靠口头。** 新人来了，旁边的人讲一遍，讲的人记得多少，新人吸收多少，完全不可控。\n\n**异常处理不透明。** 正常情况大家都会，但遇到例外，每个人处理方式不一样，结果也不一致。\n\n**Agent 无法稳定接手。** 这是和 AI 最直接相关的问题——如果流程说不清楚，Agent 就没有办法可靠地执行它。你没有办法把一个\"靠经验判断\"的流程交给 AI 自动化。\n\n---\n\n## 让流程可见的三步\n\n### 第一步：识别流程\n\n从现有的材料里，把流程的骨架找出来。\n\n材料来源可以包括：\n- 现有的 SOP 文档（哪怕已经过时）\n- 聊天记录里反复出现的操作步骤\n- 老员工的口头描述（录音后转文字，交给 AI 整理）\n- 历史的错误记录和纠错过程\n\n这一步不需要完美，先把流程的主干拿出来，再补细节。\n\n**AI 可以帮什么：** 把杂乱的文字描述，整理成有结构的步骤列表。你给它聊天记录或录音文字，它帮你提取出\"步骤1、步骤2、步骤3\"，节省大量整理时间。\n\n---\n\n### 第二步：画成结构\n\n有了骨架之后，把流程落到图上。\n\n一个完整的流程图需要包含：\n\n**角色：** 这个步骤由谁来做——财务、业务部门、系统自动完成、还是外部供应商。\n\n**节点：** 每个步骤做什么，产生什么输出。\n\n**分支：** 遇到不同情况时走哪条路——正常情况怎么走，异常情况怎么走。\n\n**审批点：** 哪些步骤需要人审批才能继续。\n\n**输出物：** 每个步骤完成后，产出的是什么——报表、凭证、邮件、还是系统里的一条记录。\n\n这张图，不需要特别专业的工具。用流程图软件（draw.io、飞书文档的流程图功能）甚至白板都可以。\n\n**关键不是画得漂亮，而是把决策节点和例外情况都画出来。**\n\n---\n\n### 第三步：用图说话\n\n流程图画出来之后，它的价值才真正开始体现。\n\n**让流程可以被讨论。** 把图放出来，让相关的人一起看——财务、业务、IT。每个人看图的时候，都会发现\"这里不对\"或者\"这里我们实际上是这样做的\"。这些修正，会让流程越来越接近真实。\n\n**让流程可以被复用。** 下次有新人，给他看这张图，而不是靠口头传授。\n\n**让流程可以被改进。** 当你想优化某个环节，图上一目了然——哪个节点最慢、哪个分支最容易出错、哪个审批最冗余。\n\n**让流程可以被 Agent 执行。** 这是和 AI 最直接的连接。\n\n---\n\n## 流程可见之后，Agent 才能接手\n\n一个流程，如果能被人用语言清楚地描述，通常就能被 Agent 执行。\n\n**Agent 执行流程的条件：**\n\n- 步骤是确定的，不依赖隐性经验\n- 每个节点的输入和输出是明确的\n- 分支条件是可以判断的（不是\"靠感觉\"）\n- 例外情况有明确的升级路径\n\n如果流程图里有\"视情况而定\"、\"一般来说\"、\"老员工知道怎么处理\"——这些地方，Agent 就没有办法可靠地执行，需要人介入。\n\n**不是所有流程节点都适合自动化。** 把哪些节点交给 Agent、哪些节点留给人，这个判断在流程图上做，比在代码里做要容易得多。\n\n---\n\n## 一个真实的例子：财务审批流程的可见化\n\n以一个常见的费用报销审批为例。\n\n**流程可见之前的状态：**\n\n> \"报销就是提交申请，然后等审批。金额大的要总监签，小的组长签就行。有时候发票有问题会打回来，重新提交。\"\n\n这段描述，有信息，但没有结构。什么叫\"金额大\"？发票哪里有问题？打回来之后谁来通知申请人？重新提交走什么流程？\n\n**流程可见之后：**\n\n```\n申请人提交报销申请\n    ↓\n系统检查：金额 > 5000元？\n    ├─ 是 → 进入总监审批队列\n    └─ 否 → 进入组长审批队列\n           ↓\n审批人审核发票\n    ├─ 通过 → 进入财务复核\n    └─ 退回 → 系统通知申请人 + 标注退回原因\n               ↓ 申请人修改后重新提交（重新走审批流程）\n           ↓\n财务复核\n    ├─ 通过 → 进入付款队列\n    └─ 退回 → 同上\n```\n\n这个流程图，让以下事情变成可能：\n- Agent 可以自动判断审批路由\n- 系统可以自动发送通知\n- 退回原因可以标准化\n- 流程状态可以实时追踪\n\n---\n\n## 流程可见的顺序不能颠倒\n\n自动化之前，先标准化。\n标准化之前，先让流程可见。\n\n这个顺序不能颠倒。\n\n**如果流程还说不清楚就开始自动化，结果是把混乱执行得更快。** 错误发生的速度更快，范围更大，而且更难追查——因为\"系统自动做的\"比\"人做的\"更难说清楚出了什么问题。\n\n这是很多 RPA 和 AI 自动化项目失败的真实原因——不是技术问题，是流程没有想清楚就开始做了。\n\n**让流程可见，是真正有效的自动化的前提，不是可选项。**\n\n---\n\n## 📌 本章要点卡\n\n1. 财务流程大量存在于人的经验里——**流程不可见，自动化就不可靠**\n2. 让流程可见的三步：**识别骨架 → 画成结构 → 用图说话**——顺序不能颠倒\n3. 流程图里的\"视情况而定\"，就是**人必须介入的节点**——在图上决定，比在代码里决定容易得多\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 选你们部门一个\"全靠经验\"的流程，花30分钟，试着**用文字把每一个步骤写出来**——写不清楚的地方，就是流程还没想清楚的地方\n- [ ] 把上面的文字描述**交给 AI，让它生成一个结构化的流程步骤列表**，看看它整理出来的和你脑子里的有没有差距\n- [ ] 找一个流程图工具，**把这个流程画出来**——特别注意标出分支条件和审批节点\n\n---\n\n*下一章：财务 AI 的红线——比通用版更严格的边界*\n\n\n---\n","wordCount":2276},{"id":"finance-ai-playbook-part-2-5","bookId":"finance-ai-playbook","fileName":"Finance_AI_Playbook_Ch5.md","partKey":"part-2","partTitle":"正文","chapterInPart":5,"globalChapter":5,"numberLabel":"","metaLabel":"","title":"第五章：财务 AI 的红线","markdown":"# 第五章：财务 AI 的红线\n\n> 读完这章，你会知道财务场景里哪些事绝对不能让 AI 做，以及为什么比通用版的边界更严格。\n\n---\n\n## 为什么财务需要单独的红线清单\n\nPart I 的第三章和第四章，已经讲过 AI 的通用局限和数据安全边界。\n\n财务场景需要在这个基础上，再加一层——因为财务工作有两个特质，使得\"出错\"的代价比其他职能高得多：\n\n**数字有法律效力。** 财务报表、税务申报、合同金额、监管报告——这些文件里的数字，一旦错了，后果不只是\"数据不准\"，而是审计风险、税务罚款、法律责任。\n\n**错误难以撤回。** 一封邮件发错了可以道歉，一个报告发错了可以更正，但一份已经提交给监管机构的申报、一笔已经完成的付款、一份已经签署的合同——这些操作的可逆性极低。\n\n这两个特质，决定了财务场景的 AI 使用边界，必须比通用版更保守、更明确。\n\n---\n\n## 红线一：财务数字不能只靠 AI 生成\n\nAI 可以帮你计算、汇总、对比——但任何出现在正式文件里的财务数字，必须经过人工核实。\n\n**不是\"AI 算完人看一眼\"，而是独立验算。**\n\n看一眼和验算，是两件不同的事。\n\n看一眼：数字看起来合理，感觉没问题，通过。\n\n独立验算：用原始数据，按照自己的计算逻辑，重新算一遍，和 AI 的结果对比，找出差异原因。\n\n在财务报表、税务申报、对外披露文件里，所有关键数字，都需要独立验算。这不是对 AI 不信任，而是财务工作本来就有的双重复核要求——只是现在复核的对象从\"同事的计算\"变成了\"AI 的输出\"。\n\n---\n\n## 红线二：会计判断不能外包给 AI\n\n会计判断，是指需要运用会计准则、职业判断和主观估计的决定。比如：\n\n- 某项资产是否需要计提减值，减值金额是多少\n- 某笔收入应该在哪个时间点确认\n- 某类费用应该资本化还是费用化\n- 关联交易的定价是否公允\n\n这类判断，AI 可以给你参考意见，可以帮你列出相关准则条款，可以帮你整理历史先例——但**最终判断必须由有资质的财务专业人员来做，并且承担责任。**\n\n原因不只是技术——AI 确实对会计准则有一定了解。更根本的原因是：这类判断有法律效力，需要一个能够承担法律责任的人来做出。AI 不能承担责任，所以它不能做这类判断。\n\n如果你不敢在审计师面前说\"这个判断是 AI 做的\"，那就不要让 AI 做这个判断。\n\n---\n\n## 红线三：税务申报内容不能直接用 AI 生成\n\n税务申报是高风险的对外文件，错误可能触发税务稽查、罚款、甚至刑事责任。\n\nAI 可以帮你：\n- 整理申报所需的数据\n- 检查申报数据的内部一致性\n- 解释税法条款的一般含义\n- 提醒可能遗漏的申报项目\n\nAI 不能帮你：\n- 直接生成申报数据\n- 解释税法条款在你的具体情况下如何适用\n- 决定某项收入或支出的税务处理方式\n\n税务判断需要了解你的具体业务背景、当地税务机关的执行口径、以及最新的政策变化。这些信息，AI 不一定有，也不一定准确。\n\n---\n\n## 红线四：付款和资金操作不能由 AI 自动触发\n\n这是最严格的一条红线，没有例外。\n\n任何涉及真实资金流动的操作——付款审批、转账指令、资金划拨——必须由有授权的人来最终触发，不能由 AI 或自动化脚本直接完成。\n\n这不只是内控要求，也是基本的风险防范。一旦 AI 或 RPA 出现错误，或者被恶意利用，能够自动触发付款的系统，造成的损失可能是不可逆的。\n\n**付款环节，人工确认是硬性要求，不是可以用效率理由绕过的。**\n\n---\n\n## 红线五：高敏感财务数据不能进入公共 AI\n\nPart I 已经讲过数据安全的通用原则。财务数据的敏感性，需要额外强调。\n\n以下数据，只能在企业批准的、有数据保护协议的 AI 渠道里处理：\n\n- 未公开的财务报表数据\n- 预算和预测数据\n- 并购、融资、上市相关的财务信息\n- 客户的财务数据\n- 薪酬和个人所得税数据\n\n这些数据一旦通过个人账号进入公共 AI，你对这些数据的控制就已经失去了。即使 AI 平台承诺不存储，处理过程本身已经发生在企业边界之外。\n\n---\n\n## 红线六：AI 的财务解读不能不加审核直接对外\n\nAI 生成的财务分析文字，在对外发布之前，必须经过专业财务人员的审核。\n\n原因有两个：\n\n**准确性风险：** AI 可能在解读中引入错误——数字引用错误、逻辑推断偏差、对业务背景的误解。\n\n**措辞风险：** 财务对外沟通有非常严格的措辞要求，特别是上市公司——某些表述可能触发信息披露义务，某些措辞可能被解读为业绩承诺或风险隐瞒。AI 不了解这些合规边界。\n\n财务文字的审核，不只是看数字对不对，还要看措辞是否合规、是否可能引发误解。\n\n---\n\n## 一张快速判断表\n\n遇到一个具体任务，用这张表快速判断：\n\n| 任务类型 | AI 可以做 | AI 不能做 |\n|---------|----------|----------|\n| 数据汇总和计算 | ✅ 生成初稿 | ❌ 最终数字不能不验算 |\n| 会计准则查询 | ✅ 列出相关条款 | ❌ 不能做具体情况的适用判断 |\n| 税务数据整理 | ✅ 整理和检查 | ❌ 不能生成申报内容 |\n| 付款流程 | ✅ 辅助审核材料 | ❌ 不能触发付款操作 |\n| 财务分析文字 | ✅ 生成初稿 | ❌ 不能不审核直接对外 |\n| 敏感数据处理 | ✅ 企业版渠道 | ❌ 个人账号/公共AI |\n| 异常标注 | ✅ 识别和提示 | ❌ 不能自行判断处理方式 |\n\n---\n\n## 红线的目的不是阻止使用\n\n说了这么多\"不能\"，这一章的目的不是让你对财务 AI 望而却步。\n\n财务 AI 能带来的效率提升是真实的。这些红线，是为了让你在安全的边界内，放心地去探索和使用——而不是等出了问题再来划线。\n\n**知道边界在哪里，才能在边界内自由探索。**\n\n---\n\n## 📌 本章要点卡\n\n1. 财务数字的法律效力和低可逆性，决定了财务场景的红线**比通用版更严格**\n2. 六条红线：**数字独立验算、会计判断不外包、税务申报不直接生成、付款人工触发、敏感数据只走企业渠道、对外文字必须审核**\n3. 红线的目的是**划定安全空间**，不是阻止使用——知道边界，才能在边界内放心探索\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 对照六条红线，检查你们团队现在的 AI 使用方式——**哪条红线目前没有明确规定？**\n- [ ] 找到你们日常工作里**最接近红线的一个场景**，想想目前的做法是否足够安全\n- [ ] 如果你管团队，考虑把这六条红线**写成一页纸的财务AI使用规范**，在团队里明确\n\n---\n\n*下一章：三个真实场景——从想法到可用工具的完整过程*\n\n\n---\n","wordCount":2494},{"id":"finance-ai-playbook-part-2-6","bookId":"finance-ai-playbook","fileName":"Finance_AI_Playbook_Ch6.md","partKey":"part-2","partTitle":"正文","chapterInPart":6,"globalChapter":6,"numberLabel":"","metaLabel":"","title":"第六章：三个真实场景","markdown":"# 第六章：三个真实场景\n\n> 这一章不讲原则，只讲过程——三个从真实需求出发，一步一步做出来的财务 AI 工具。\n\n---\n\n## 为什么讲过程，不讲结论\n\n很多 AI 案例的写法是：问题是什么，解决方案是什么，效果是什么。\n\n这种写法看起来整洁，但没有告诉你最重要的东西：**中间经历了什么，哪里卡住了，怎么做决定的。**\n\n这一章反过来——重点写过程，写决策，写踩过的坑。结论反而放在最后，因为结论只有在你理解了过程之后才有意义。\n\n---\n\n## 场景一：费用汇总对账工具\n\n### 需求的起点\n\n需求听起来很朴素：上传费用明细表和规则表，按口径匹配对象，输出一张汇总表。\n\n像是 Excel 里的 vlookup，不高级。但它有一个好处：足够具体，能验证。\n\n**第一个决定：做网页，不做命令行脚本。**\n\n原因很现实——非技术同事不会配置环境，不一定会跑命令行，但可以打开网页、上传文件、看结果。工具如果用不起来，再精巧也没用。\n\n用 Codex 生成前端页面，这个决定省了大量来回。\n\n---\n\n### 六个阶段，一步一步长出来\n\n**第一阶段：先跑通**\n\n上传两张表，按成本中心匹配，输出第一张汇总。\n\n这一步的重点不是复杂，而是第一张表能对上。如果第一张表就对不上，后面加任何功能都是在错误的基础上叠加错误。\n\n跑通了，再往下走。\n\n**第二阶段：数据变了怎么办**\n\n真实工作里，表头会变，字段位置会变，规则表会更新。不能假设每个月文件都一样。\n\n这时要让 AI 重新理解字段，用样例跑效果，确认读取逻辑在新的文件格式下仍然成立。\n\n这一步踩过的坑：**\"能运行\"不等于\"读对了\"。** 脚本跑完没有报错，但字段读取偏移了一列，结果全错。这种错误如果不仔细对账，很难发现。\n\n**第三阶段：对账排查**\n\n当系统结果和人工 Excel 不一致时，正确的做法不是只说\"你错了，重新算\"，而是要求逐项检查：\n\n- 字段读取是否正确\n- 匹配规则是否按预期执行\n- 空值如何处理\n- 汇总口径是否一致\n- 差异的具体来源是哪里\n\n让 AI 把每一步的中间结果展示出来，而不是只给最终结果。这样当结果不对的时候，能找到问题在哪一步。\n\n**关键认知：业务同学要结果，审计要过程。** 工具不能只给结果，还要让人能复核计算过程。这个设计要在早期就考虑进去，不是事后加。\n\n**第四阶段：注入业务逻辑**\n\n简单匹配跑通之后，真实的业务规则开始进入工具：\n\n- 某些科目需要合并处理\n- 共享费用按比例分摊给多个主体\n- 分摊比例每个季度可能调整\n- 跨币种的汇率换算\n- 手工调整项的处理\n\n每一条业务规则，都需要先把逻辑说清楚，再让 AI 实现。**说不清楚的规则，AI 会猜，猜的结果大概率不对。**\n\n**第五阶段：规则配置化**\n\n如果规则下个月还会改，就不要每次改代码——规则应该做成可读、可调整的配置页。\n\n财务同事可以在界面上直接修改分摊比例、调整匹配规则，不需要找人改代码，不需要等待技术支持。\n\n这一步的投入，会在后续每次规则变化时节省大量时间。\n\n**第六阶段：产品化**\n\n最后，才是让工具看起来像一个正常产品：\n\n- 数字显示千分位和两位小数\n- 表格有合计行和正式标题\n- 去掉开发阶段的调试信息\n- 导出的文件名自动包含日期\n\n这些细节不影响计算逻辑，但影响使用体验——一个看起来\"粗糙\"的工具，会让人对结果的信任度降低，哪怕计算完全正确。\n\n---\n\n### 这个案例说明了什么\n\n工具不是一次写完的，而是在对账和反馈中逐步长出来的。\n\n**先跑通，再对账，再加业务逻辑，再配置化，最后产品化。** 这个顺序不能颠倒——在没有跑通之前加复杂业务逻辑，是在错误的地基上盖楼。\n\n---\n\n## 场景二：财务规则查询助手\n\n### 需求的起点\n\n财务规则常常分散在很多地方：文档、表格、历史邮件、老员工的记忆、临时通知。\n\n员工遇到问题，不知道问谁。即使问到了，不同的人在不同时间给出的答案，口径可能不一致。\n\n**这个场景里最大的风险不是没人答，而是每个人答得都像真的。**\n\n---\n\n### 关键设计决策\n\n这个工具的目标，不是让 AI 当财务专家，而是做一个**统一查询入口**：\n\n- 查公司主体信息\n- 查项目代码\n- 查发票报销规则\n- 查常见问题的标准口径\n- 遇到不确定的问题，走确认路线\n\n**最重要的设计原则：知道什么时候不能回答。**\n\nAI 很容易给出一个看起来完整的答案，即使它不确定。但在财务场景里，一个\"完整但错误\"的答案，比\"我不确定，请确认\"危害大得多。\n\n所以这个工具有一条硬性规则：**对于不在知识库里的内容，或者涉及具体业务判断的问题，工具必须明确说\"这个问题需要人工确认\"，而不是猜测。**\n\n这条规则，要在工具的提示词里硬编码——不能靠模型\"懂事\"，要靠设计来保证。\n\n---\n\n### 从\"问人\"到\"问入口\"的转变\n\n工具上线之前的状态：\n- 员工到处问，找不到负责人\n- 找到了，答案也可能过时\n- 不同人给的答案口径不同\n\n工具上线之后：\n- 先查统一入口\n- 能回答的，给标准口径和来源文档\n- 不能回答的，标注\"请联系财务部确认\"，并告诉员工找谁\n\n**更重要的变化是：系统把\"不确定\"变成了流程的一部分，而不是让它在口口相传中消失。**\n\n---\n\n### 踩过的坑\n\n**坑一：知识库不更新，工具就失效。**\n\n规则变了，工具里的内容还是旧的——员工得到旧答案，按旧规则操作，出了问题还以为是按规定来的。\n\n知识库需要有人负责维护，这是工具能否持续可信的关键，和技术无关。\n\n**坑二：员工对 AI 的信任度比对人更高。**\n\n反直觉但真实——很多员工对 AI 给的答案，反而比对同事给的答案更容易接受，因为\"系统说的\"感觉更权威。\n\n这意味着：工具给出错误答案的风险，比人给出错误答案的风险更大，因为传播速度更快，质疑的人更少。\n\n这是为什么\"知道什么时候不能回答\"这个设计，比\"尽量回答更多问题\"更重要。\n\n---\n\n## 场景三：月度财务回顾的 AI 辅助流程\n\n### 需求的起点\n\n月度财务回顾，是财务部门最重复、也最重要的工作之一。\n\n重复的部分：数据收集、汇总、生成图表、写差异说明。\n重要的部分：业务解读、异常判断、和管理层的沟通。\n\n问题是：**大量时间花在了重复的部分，留给重要部分的时间反而不够。**\n\n---\n\n### 重新设计之后的流程\n\n**第1-2天：数据自动到位**\n\nRPA 从财务系统自动导出月度数据，存到公盘指定位置。不需要人手动登录系统操作，不需要等某个人有空来做这件事。\n\n（这是第二章讲的基础设施发挥价值的地方。）\n\n**第3天：AI 做数据层分析**\n\nAI 读取数据，生成：\n- 按维度汇总（部门、项目、科目）\n- 关键指标计算（预算完成率、同比、环比）\n- 异常标注（超预算项目、大幅波动）\n- 可视化图表\n- 需要业务澄清的问题清单\n\n这一步，AI 只描述\"是什么\"，不解释\"为什么\"。\n\n**第4-5天：财务人员做业务澄清**\n\n带着 AI 生成的问题清单，和各业务部门沟通，收集业务背景。\n\n这是人不可替代的部分。AI 看得见数字，看不见业务现实——为什么差旅费增加、某个项目为什么延期、某笔支出的真实业务背景是什么，这些答案在业务部门，不在数据里。\n\n**第6天：人和 AI 共同完成分析结论**\n\n把业务澄清的结果输入给 AI，AI 更新数据解读，财务人员做最终判断和措辞确认。\n\n这里有一个关键实践：**约束 AI 的分析只能基于已知事实，不能做超出数据的推断。**\n\n提示词框架：\n```\n以下是本月财务数据和业务部门的说明。\n请基于这些已知信息，生成月度回顾的分析文字。\n\n要求：\n- 只描述数据事实和业务部门已确认的原因\n- 不要推测业务部门没有确认的内容\n- 对于原因不明的异常，标注\"原因待确认\"\n- 语气客观，不做价值判断\n```\n\n**第7天：审核和发布**\n\n财务负责人审核报告，确认数字准确、解读合理、措辞符合对外沟通要求，发布。\n\n这一步不能省——这是财务负责人对整份报告质量背书的环节。\n\n---\n\n### 这个流程改变了什么\n\n改变之前：大量时间在数据收集和格式整理，业务分析的时间不够。\n\n改变之后：数据收集和格式整理几乎全部自动化，财务人员的时间集中在业务澄清和判断上——这才是财务工作真正的价值所在。\n\n**不是用 AI 替代财务人员，而是让财务人员做更有价值的事。**\n\n---\n\n## 三个案例的共同主线\n\n回顾这三个场景，有一条共同的主线：\n\n**先把想法做成能用的东西，在使用和反馈中把它做好。**\n\n费用汇总工具，先跑通，再对账，再加逻辑，再产品化。\n财务查询助手，先建知识库，再设计边界，再上线，再根据反馈更新。\n月度回顾流程，先跑通一个月，再根据实际使用调整节奏和工具配置。\n\n没有一个是\"想清楚了再做\"——因为很多东西，不做就想不清楚。\n\n这不是草率，这是有意识地选择\"用最小的成本，让判断发生\"。\n\n---\n\n## 📌 本章要点卡\n\n1. 工具是在对账和反馈中长出来的——**先跑通，再对账，再加逻辑，再产品化**，这个顺序不能颠倒\n2. 可信查询系统的关键能力：**知道什么时候不能回答**，比\"尽量多回答\"更重要\n3. AI 辅助流程改变的不是工作的性质，而是**时间分配**——重复性工作自动化，让人专注于判断和沟通\n\n---\n\n## ✅ 读完这章，你可以做的事\n\n- [ ] 对照费用汇总工具的六个阶段，**找出你们团队里一个类似的重复性数据处理任务**——它现在处于哪个阶段？\n- [ ] 想想你们是否有财务规则分散、口径不一致的问题——**一个查询助手能解决的最核心的三个问题是什么？**\n- [ ] 下个月的财务回顾，试着用这一章的流程框架**重新安排一下时间分配**——数据收集和AI分析放在前几天，业务澄清时间保留够\n\n---\n\n## 写在 Part III 结尾\n\n这本 Finance AI Playbook，不是一份技术手册，也不是一份方法论清单。\n\n它是一个财务人走过这条路之后，把走过的路记下来的东西。\n\n有些地方还在摸索，有些工具还在迭代，有些判断可能在六个月后需要更新。但走过这段路最重要的收获是：\n\n**AI 在财务场景里能做的事，比大多数人想象的多。但它做不到的那些事——判断、沟通、承担责任——恰恰是财务工作最核心的价值所在。**\n\n把重复的交给工具，把判断留给人。\n\n这不是退让，这是财务专业的正确归宿。\n\n---\n\n*全书完*\n\n\n---\n","wordCount":3861}],"chapterCount":7,"wordCount":18149}]}</script>
+  <script>
+    const library = JSON.parse(document.getElementById("library-data").textContent);
+    const packagedBooks = library.books || [];
+    let importedBooks = library.singleBook ? [] : loadJson("reader.importedBooks", []);
+    let notes = loadJson("reader.notes", []);
+    let selectedTextForNote = "";
+    let pendingNoteId = "";
+    const state = {
+      activeBookId: library.singleBook ? packagedBooks[0]?.id : localStorage.getItem("reader.activeBookId") || allBooks()[0]?.id,
+      activeId: library.singleBook ? localStorage.getItem("reader.singleBook.activeId") : localStorage.getItem("reader.activeId"),
+      view: library.singleBook ? "reader" : localStorage.getItem("reader.view") || "home",
+      query: "",
+      fontSize: Number(localStorage.getItem("reader.fontSize") || 19),
+      theme: localStorage.getItem("reader.theme") || "light",
+    };
+
+    const toc = document.getElementById("toc");
+    const content = document.getElementById("content");
+    const search = document.getElementById("search");
+    const libraryTitle = document.getElementById("libraryTitle");
+    const publicHomeButton = document.getElementById("publicHomeButton");
+    const publicBookstoreButton = document.getElementById("publicBookstoreButton");
+    const publicAboutButton = document.getElementById("publicAboutButton");
+    const homeButton = document.getElementById("homeButton");
+    const bookstoreButton = document.getElementById("bookstoreButton");
+    const aboutButton = document.getElementById("aboutButton");
+    const bookPicker = document.getElementById("bookPicker");
+    const bookSelect = document.getElementById("bookSelect");
+    const bookDescription = document.getElementById("bookDescription");
+    const importTools = document.getElementById("importTools");
+    const importButton = document.getElementById("importButton");
+    const fileInput = document.getElementById("fileInput");
+    const dropZone = document.getElementById("dropZone");
+    const noteList = document.getElementById("noteList");
+    const selectionPopup = document.getElementById("selectionPopup");
+    const selectedPreview = document.getElementById("selectedPreview");
+    const noteInput = document.getElementById("noteInput");
+    const cancelNoteButton = document.getElementById("cancelNoteButton");
+    const cancelNoteTextButton = document.getElementById("cancelNoteTextButton");
+    const saveNoteButton = document.getElementById("saveNoteButton");
+    const currentTitle = document.getElementById("currentTitle");
+    const articleMeta = document.getElementById("articleMeta");
+    const footerNav = document.getElementById("footerNav");
+    const prevButton = document.getElementById("prevButton");
+    const nextButton = document.getElementById("nextButton");
+    const progress = document.getElementById("progress");
+
+    document.documentElement.dataset.theme = state.theme;
+    document.documentElement.style.setProperty("--font-size", state.fontSize + "px");
+    document.body.classList.toggle("single-book", Boolean(library.singleBook));
+    libraryTitle.textContent = library.title || "本地阅读器";
+    importTools.style.display = library.authorTools ? "" : "none";
+
+    function loadJson(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function saveImportedBooks() {
+      if (library.singleBook) return;
+      localStorage.setItem("reader.importedBooks", JSON.stringify(importedBooks));
+    }
+
+    function saveNotes() {
+      localStorage.setItem("reader.notes", JSON.stringify(notes));
+    }
+
+    function allBooks() {
+      return packagedBooks.concat(importedBooks);
+    }
+
+    function activeBook() {
+      const books = allBooks();
+      return books.find((book) => book.id === state.activeBookId) || books[0] || { chapters: [] };
+    }
+
+    function chapters() {
+      return activeBook().chapters || [];
+    }
+
+    function renderBookPicker() {
+      const books = allBooks();
+      bookPicker.style.display = books.length > 1 || library.authorTools ? "" : "none";
+      bookSelect.innerHTML = books.map((book) =>
+        '<option value="' + escapeHtml(book.id) + '">' + escapeHtml(book.title) + '</option>'
+      ).join("");
+      bookSelect.value = activeBook().id || "";
+      const book = activeBook();
+      const countText = (book.chapterCount || 0) + " 章 · " + (Math.round((book.wordCount || 0) / 100) / 10) + " 千字";
+      bookDescription.textContent = [book.description, countText].filter(Boolean).join(" / ");
+    }
+
+    function setView(view) {
+      state.view = view;
+      if (!library.singleBook) localStorage.setItem("reader.view", view);
+      document.body.dataset.view = view;
+      homeButton.classList.toggle("active", view === "home");
+      bookstoreButton.classList.toggle("active", view === "bookstore");
+      aboutButton.classList.toggle("active", view === "about");
+      publicHomeButton.classList.toggle("active", view === "home");
+      publicBookstoreButton.classList.toggle("active", view === "bookstore");
+      publicAboutButton.classList.toggle("active", view === "about");
+      footerNav.style.display = view === "reader" ? "" : "none";
+      document.body.classList.remove("menu-open");
+    }
+
+    function renderBookCovers() {
+      const books = allBooks();
+      return books.map((item, index) =>
+        '<button class="book-cover" data-start-book="' + escapeHtml(item.id) + '" type="button" aria-label="打开' + escapeHtml(item.title) + '">' +
+          '<span class="cover-kicker">Book ' + String(index + 1).padStart(2, "0") + '</span>' +
+          '<span>' +
+            '<span class="cover-title">' + escapeHtml(item.title) + '</span>' +
+            '<span class="cover-subtitle">' + escapeHtml(item.description || "点击进入阅读。") + '</span>' +
+          '</span>' +
+          '<span class="cover-footer"><span>' + (item.chapterCount || 0) + ' 篇</span><span>点击阅读</span></span>' +
+        '</button>'
+      ).join("");
+    }
+
+    function renderHome() {
+      setView("home");
+      renderBookPicker();
+      currentTitle.textContent = "首页";
+      articleMeta.textContent = "给 Allie 和她这一代人的 AI 学习笔记";
+      content.innerHTML =
+        '<div class="home-layout">' +
+          '<div class="home-copy">' +
+            '<p class="home-kicker">Library to Allie and her generation</p>' +
+            '<h1 class="home-title">给 Allie 和她这一代人的 AI 学习笔记</h1>' +
+            '<p class="home-lede">这个网站是给我的女儿 Allie，以及和她同一代正在长大的孩子看的。等他们真正进入世界时，AI 很可能已经像搜索、手机和互联网一样普通。</p>' +
+            '<p>这里会放我对 AI 的学习、思考和写作实验：有些是面向小学生也能慢慢理解的 AI 科普，有些是我受到一线 AI 公司公开材料启发后的整理，也有一些是我和 AI 反复讨论、追问、改写后留下来的文章。</p>' +
+            '<div class="home-actions">' +
+              '<button class="text-button" data-show-bookstore="true">进入书城</button>' +
+              '<button class="text-button" data-show-about="true">关于这个网站</button>' +
+            '</div>' +
+          '</div>' +
+          '<div>' +
+            '<h2 class="bookstore-title">书城</h2>' +
+            '<p class="bookstore-lede">目前收录两本：一本是我的 AI 科普与 AI 原生工作手册，一本是 Anthropic Founder&#39;s Playbook 的中文翻译稿。</p>' +
+            '<div class="book-shelf">' + renderBookCovers() + '</div>' +
+          '</div>' +
+          '<div class="home-copy">' +
+            '<h2>参考与启发</h2>' +
+            '<ul class="source-list">' +
+              '<li><a href="https://openai.com/index/malta-chatgpt-plus-partnership/" target="_blank" rel="noreferrer">OpenAI and Malta partner to bring ChatGPT Plus to all citizens</a></li>' +
+              '<li><button class="text-button" data-start-book="founders-playbook" type="button">Anthropic: The founder&#39;s playbook（AI 翻译稿 / Book 02）</button></li>' +
+              '<li><a href="https://www.socratopia.app/" target="_blank" rel="noreferrer">Socratopia: AI-powered Socratic learning</a></li>' +
+            '</ul>' +
+          '</div>' +
+        '</div>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderBookstore() {
+      setView("bookstore");
+      renderBookPicker();
+      currentTitle.textContent = "书城";
+      articleMeta.textContent = "当前收录的书";
+      content.innerHTML =
+        '<h1>书城</h1>' +
+        '<p class="bookstore-lede">这里放我正在整理和写作的书。它们有些是原创科普，有些是学习过程中的翻译、摘录和再理解。</p>' +
+        '<div class="book-shelf">' + renderBookCovers() + '</div>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderAbout() {
+      setView("about");
+      renderBookPicker();
+      currentTitle.textContent = "关于";
+      articleMeta.textContent = "项目说明";
+      content.innerHTML =
+        '<h1>关于这个项目</h1>' +
+        '<p>这个站点不是一个泛泛的 AI 工具导航，也不是一份追热点的教程。它想做的是：受 OpenAI、Anthropic 等一线 AI 公司公开实践的启发，重新写一份更适合中文使用者阅读和行动的 AI 科普与 AI 原生工作手册。</p>' +
+        '<p>我会把原始材料、自己的理解和中文语境下的延展尽量分清楚。这里的观点不一定都对，但它们应该是可讨论、可实践、也可被修正的。</p>' +
+        '<h2>为什么叫“AI 原生工作”</h2>' +
+        '<p>因为 AI 不只是提高某个动作的效率。更深的变化在于：如果 AI 能力已经存在，我们是不是应该重新设计任务、流程、角色和组织协作方式。</p>' +
+        '<div class="home-actions"><button class="text-button" data-start-reading="true">从前言开始</button></div>';
+      renderToc();
+      renderNotes();
+      requestAnimationFrame(updateProgress);
+    }
+
+    function renderView() {
+      if (state.view === "about") {
+        renderAbout();
+      } else if (state.view === "bookstore") {
+        renderBookstore();
+      } else if (state.view === "reader") {
+        renderArticle();
+      } else {
+        renderHome();
+      }
+    }
+
+    function chapterNumberText(chapter) {
+      if (chapter.numberLabel) return chapter.numberLabel;
+      return chapter.globalChapter === 0 ? "序" : String(chapter.globalChapter);
+    }
+
+    function chapterMetaText(chapter) {
+      const chapterText = chapter.metaLabel || (chapter.globalChapter === 0 ? "前言" : "第 " + chapter.globalChapter + " 章");
+      return chapter.partTitle + " / " + chapterText + " / " + (Math.round(chapter.wordCount / 100) / 10) + " 千字";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function inlineMarkdown(value) {
+      let html = escapeHtml(value);
+      html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      html = html.replace(new RegExp(String.fromCharCode(96) + "([^" + String.fromCharCode(96) + "]+)" + String.fromCharCode(96), "g"), "<code>$1</code>");
+      return html;
+    }
+
+    function renderMarkdown(markdown, query = "") {
+      const lines = markdown.split(/\r?\n/);
+      const blocks = [];
+      let paragraph = [];
+      let list = [];
+      let listType = null;
+      let tableRows = [];
+      let codeLines = [];
+      let inCodeBlock = false;
+
+      function flushParagraph() {
+        if (!paragraph.length) return;
+        blocks.push("<p>" + inlineMarkdown(paragraph.join(" ")) + "</p>");
+        paragraph = [];
+      }
+
+      function flushList() {
+        if (!list.length) return;
+        const tag = listType === "ol" ? "ol" : "ul";
+        blocks.push("<" + tag + ">" + list.map((item) => "<li>" + inlineMarkdown(item) + "</li>").join("") + "</" + tag + ">");
+        list = [];
+        listType = null;
+      }
+
+      function tableCells(line) {
+        return line.replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => cell.trim());
+      }
+
+      function isSeparatorRow(cells) {
+        return cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+      }
+
+      function flushTable() {
+        if (!tableRows.length) return;
+        const rows = tableRows.map(tableCells);
+        const hasHeader = rows.length > 1 && isSeparatorRow(rows[1]);
+        const bodyRows = hasHeader ? rows.slice(2) : rows;
+        if (hasHeader) {
+          blocks.push(
+            "<table><thead><tr>" +
+              rows[0].map((cell) => "<th>" + inlineMarkdown(cell) + "</th>").join("") +
+              "</tr></thead><tbody>" +
+              bodyRows.map((row) => "<tr>" + row.map((cell) => "<td>" + inlineMarkdown(cell) + "</td>").join("") + "</tr>").join("") +
+              "</tbody></table>"
+          );
+        } else {
+          blocks.push(
+            "<table><tbody>" +
+              bodyRows.map((row) => "<tr>" + row.map((cell) => "<td>" + inlineMarkdown(cell) + "</td>").join("") + "</tr>").join("") +
+              "</tbody></table>"
+          );
+        }
+        tableRows = [];
+      }
+
+      function flushCode() {
+        if (!codeLines.length) return;
+        blocks.push("<pre><code>" + escapeHtml(codeLines.join("\n")) + "</code></pre>");
+        codeLines = [];
+      }
+
+      for (const rawLine of lines) {
+        if (rawLine.trim().startsWith(String.fromCharCode(96).repeat(3))) {
+          if (inCodeBlock) {
+            flushCode();
+            inCodeBlock = false;
+          } else {
+            flushParagraph();
+            flushList();
+            flushTable();
+            inCodeBlock = true;
+          }
+          continue;
+        }
+        if (inCodeBlock) {
+          codeLines.push(rawLine);
+          continue;
+        }
+        const line = rawLine.trim();
+        if (!line) {
+          flushParagraph();
+          flushList();
+          flushTable();
+          continue;
+        }
+        if (/^---+$/.test(line)) {
+          flushParagraph();
+          flushList();
+          flushTable();
+          blocks.push("<hr>");
+          continue;
+        }
+        const heading = line.match(/^(#{1,3})\s+(.+)$/);
+        if (heading) {
+          flushParagraph();
+          flushList();
+          flushTable();
+          const level = heading[1].length;
+          blocks.push("<h" + level + ">" + inlineMarkdown(heading[2]) + "</h" + level + ">");
+          continue;
+        }
+        if (line.startsWith(">")) {
+          flushParagraph();
+          flushList();
+          flushTable();
+          blocks.push("<blockquote>" + inlineMarkdown(line.replace(/^>\s?/, "")) + "</blockquote>");
+          continue;
+        }
+        if (line.startsWith("|") && line.endsWith("|")) {
+          flushParagraph();
+          flushList();
+          tableRows.push(line);
+          continue;
+        }
+        const unordered = line.match(/^[-*]\s+(.+)$/);
+        const ordered = line.match(/^\d+\.\s+(.+)$/);
+        if (unordered || ordered) {
+          flushParagraph();
+          flushTable();
+          const type = ordered ? "ol" : "ul";
+          if (listType && listType !== type) flushList();
+          listType = type;
+          list.push((unordered || ordered)[1]);
+          continue;
+        }
+        flushTable();
+        paragraph.push(line);
+      }
+      flushParagraph();
+      flushList();
+      flushTable();
+      flushCode();
+
+      let html = blocks.join("\n");
+      if (query.trim()) {
+        const safeQuery = escapeRegExp(query.trim());
+        html = html.replace(new RegExp("(" + safeQuery + ")", "gi"), "<mark>$1</mark>");
+      }
+      return html;
+    }
+
+    function escapeRegExp(value) {
+      return value.replace(/[.*+?^$(){}|[\]\\]/g, "\\$&");
+    }
+
+    function filteredChapters() {
+      const query = state.query.trim().toLowerCase();
+      const bookChapters = chapters();
+      if (!query) return bookChapters;
+      return bookChapters.filter((chapter) =>
+        chapter.title.toLowerCase().includes(query) ||
+        chapter.partTitle.toLowerCase().includes(query) ||
+        chapter.markdown.toLowerCase().includes(query)
+      );
+    }
+
+    function renderToc() {
+      const visible = filteredChapters();
+      const groups = new Map();
+      visible.forEach((chapter) => {
+        if (!groups.has(chapter.partKey)) groups.set(chapter.partKey, []);
+        groups.get(chapter.partKey).push(chapter);
+      });
+
+      toc.innerHTML = [...groups.entries()].map(([partKey, group]) => {
+        const items = group.map((chapter) =>
+          '<button class="chapter-button ' + (chapter.id === state.activeId ? "active" : "") + '" data-id="' + chapter.id + '">' +
+            '<span class="chapter-num">' + chapterNumberText(chapter) + '</span>' +
+            '<span>' +
+              '<span class="chapter-name">' + escapeHtml(chapter.title) + '</span>' +
+              '<span class="chapter-meta">' + (Math.round(chapter.wordCount / 100) / 10) + ' 千字</span>' +
+            '</span>' +
+          '</button>'
+        ).join("");
+        return '<div class="part-title">' + escapeHtml(group[0].partTitle) + '</div><div class="chapter-list">' + items + '</div>';
+      }).join("");
+    }
+
+    function renderArticle() {
+      const bookChapters = chapters();
+      const chapter = bookChapters.find((item) => item.id === state.activeId) || bookChapters[0];
+      if (!chapter) return;
+      setView("reader");
+      state.activeId = chapter.id;
+      state.activeBookId = activeBook().id;
+      localStorage.setItem("reader.activeBookId", state.activeBookId);
+      localStorage.setItem("reader.activeId", state.activeId);
+      if (library.singleBook) localStorage.setItem("reader.singleBook.activeId", state.activeId);
+      renderBookPicker();
+      currentTitle.textContent = activeBook().title + " / " + chapter.title;
+      articleMeta.textContent = chapterMetaText(chapter);
+      content.innerHTML = renderMarkdown(chapter.markdown, state.query);
+      applyNoteHighlights(chapter);
+      renderNotes();
+
+      const index = bookChapters.findIndex((item) => item.id === chapter.id);
+      updateNav(prevButton, bookChapters[index - 1], "上一章");
+      updateNav(nextButton, bookChapters[index + 1], "下一章");
+      renderToc();
+      requestAnimationFrame(() => {
+        updateProgress();
+        if (pendingNoteId) {
+          scrollToNote(pendingNoteId);
+          pendingNoteId = "";
+        }
+      });
+    }
+
+    function activeChapter() {
+      return chapters().find((item) => item.id === state.activeId);
+    }
+
+    function notesForActiveBook() {
+      return notes.filter((note) => note.bookId === activeBook().id);
+    }
+
+    function applyNoteHighlights(chapter) {
+      const chapterNotes = notes.filter((note) => note.chapterId === chapter.id && note.selectedText);
+      chapterNotes.forEach((note) => highlightFirstMatch(note.selectedText, note.id));
+    }
+
+    function highlightFirstMatch(text, noteId) {
+      const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+      let node = walker.nextNode();
+      while (node) {
+        const index = node.nodeValue.indexOf(text);
+        if (index >= 0) {
+          const range = document.createRange();
+          range.setStart(node, index);
+          range.setEnd(node, index + text.length);
+          const span = document.createElement("span");
+          span.className = "note-highlight";
+          span.dataset.noteId = noteId;
+          span.title = "查看批注";
+          range.surroundContents(span);
+          return;
+        }
+        node = walker.nextNode();
+      }
+    }
+
+    function renderNotes() {
+      const bookNotes = notesForActiveBook().slice().sort((a, b) => b.createdAt - a.createdAt);
+      if (!bookNotes.length) {
+        noteList.innerHTML = '<div class="chapter-meta">还没有批注。划选正文里的句子就可以写。</div>';
+        return;
+      }
+      noteList.innerHTML = bookNotes.map((note) =>
+        '<button class="note-item" data-note-id="' + note.id + '">' +
+          '<span class="note-quote">' + escapeHtml(note.selectedText.slice(0, 42)) + '</span>' +
+          '<span class="note-text">' + escapeHtml(note.noteText || "无文字批注") + '</span>' +
+          '<span class="chapter-meta">' + escapeHtml(note.chapterTitle || "") + '</span>' +
+        '</button>'
+      ).join("");
+    }
+
+    function scrollToNote(noteId) {
+      const target = content.querySelector('[data-note-id="' + noteId + '"]');
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.animate([{ outlineColor: "transparent" }, { outlineColor: "var(--accent)" }, { outlineColor: "transparent" }], { duration: 1000 });
+    }
+
+    function hideSelectionPopup() {
+      selectionPopup.classList.remove("open");
+      selectedTextForNote = "";
+      noteInput.value = "";
+      selectedPreview.textContent = "";
+      saveNoteButton.disabled = true;
+    }
+
+    function showSelectionPopup(range, selectedText) {
+      selectedTextForNote = selectedText;
+      noteInput.value = "";
+      selectedPreview.textContent = selectedText.length > 120 ? selectedText.slice(0, 120) + "..." : selectedText;
+      saveNoteButton.disabled = true;
+      const rect = range.getBoundingClientRect();
+      const popupWidth = Math.min(360, window.innerWidth - 24);
+      const left = Math.min(window.innerWidth - popupWidth - 12, Math.max(12, rect.left));
+      const bottomTop = rect.bottom + 10;
+      const top = bottomTop > window.innerHeight - 230 ? Math.max(12, rect.top - 230) : bottomTop;
+      selectionPopup.style.left = left + "px";
+      selectionPopup.style.top = top + "px";
+      selectionPopup.classList.add("open");
+      noteInput.focus();
+    }
+
+    function makeImportedChapter(bookId, file, markdown, index) {
+      const h1 = [...markdown.matchAll(/^#\s+(.+)$/gm)].map((match) => match[1].trim());
+      const title = h1[0] || file.name.replace(/\.md$/i, "");
+      return {
+        id: bookId + "-chapter-" + (index + 1),
+        bookId,
+        fileName: file.name,
+        partKey: "imported",
+        partTitle: "导入内容",
+        chapterInPart: index + 1,
+        globalChapter: index + 1,
+        title,
+        markdown,
+        wordCount: Array.from(markdown.replace(new RegExp(String.fromCharCode(96).repeat(3) + "[\\s\\S]*?" + String.fromCharCode(96).repeat(3), "g"), "").replace(/\s/g, "")).length,
+      };
+    }
+
+    async function importMarkdownFiles(fileList) {
+      const files = [...fileList].filter((file) => file.name.toLowerCase().endsWith(".md"));
+      if (!files.length) return;
+      files.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
+      const bookName = window.prompt("给这批 Markdown 起一个书名", files[0].name.replace(/\.md$/i, ""));
+      if (!bookName) return;
+      const bookId = "imported-" + Date.now();
+      const texts = await Promise.all(files.map((file) => file.text()));
+      const chapters = files.map((file, index) => makeImportedChapter(bookId, file, texts[index], index));
+      const book = {
+        id: bookId,
+        title: bookName,
+        description: "浏览器导入",
+        chapters,
+        chapterCount: chapters.length,
+        wordCount: chapters.reduce((total, chapter) => total + chapter.wordCount, 0),
+      };
+      importedBooks.push(book);
+      saveImportedBooks();
+      state.activeBookId = book.id;
+      state.activeId = chapters[0]?.id;
+      renderArticle();
+    }
+
+    function updateNav(button, chapter, label) {
+      button.disabled = !chapter;
+      button.innerHTML = chapter
+        ? '<div class="nav-label">' + label + '</div><div class="nav-title">' + escapeHtml(chapter.title) + '</div>'
+        : '<div class="nav-label">' + label + '</div><div class="nav-title">没有更多章节</div>';
+      button.onclick = () => {
+        if (!chapter) return;
+        state.activeId = chapter.id;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderArticle();
+      };
+    }
+
+    function updateProgress() {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const ratio = max > 0 ? Math.min(100, Math.max(0, (scrollTop / max) * 100)) : 0;
+      progress.style.width = ratio + "%";
+    }
+
+    toc.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-id]");
+      if (!button) return;
+      state.activeId = button.dataset.id;
+      document.body.classList.remove("menu-open");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderArticle();
+    });
+
+    content.addEventListener("mouseup", () => {
+      if (state.view !== "reader") return;
+      const selection = window.getSelection();
+      const selectedText = selection ? selection.toString().trim() : "";
+      if (!selection || !selectedText || selectedText.length < 2) return;
+      if (!content.contains(selection.anchorNode) || !content.contains(selection.focusNode)) return;
+      showSelectionPopup(selection.getRangeAt(0), selectedText);
+    });
+
+    content.addEventListener("mousedown", (event) => {
+      if (!selectionPopup.classList.contains("open")) return;
+      if (event.target.closest("[data-note-id]")) return;
+      hideSelectionPopup();
+    });
+
+    content.addEventListener("click", (event) => {
+      const bookButton = event.target.closest("[data-start-book]");
+      if (bookButton) {
+        state.activeBookId = bookButton.dataset.startBook;
+        state.activeId = chapters()[0]?.id;
+        localStorage.setItem("reader.activeBookId", state.activeBookId);
+        localStorage.setItem("reader.activeId", state.activeId || "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderArticle();
+        return;
+      }
+      const startButton = event.target.closest("[data-start-reading]");
+      if (startButton) {
+        state.activeId = chapters()[0]?.id;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderArticle();
+        return;
+      }
+      const aboutTrigger = event.target.closest("[data-show-about]");
+      if (aboutTrigger) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderAbout();
+        return;
+      }
+      const bookstoreTrigger = event.target.closest("[data-show-bookstore]");
+      if (bookstoreTrigger) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        renderBookstore();
+        return;
+      }
+      const highlight = event.target.closest("[data-note-id]");
+      if (!highlight) return;
+      const note = notes.find((item) => item.id === highlight.dataset.noteId);
+      if (note) window.alert((note.selectedText || "") + "\n\n" + (note.noteText || "无文字批注"));
+    });
+
+    saveNoteButton.addEventListener("click", () => {
+      const chapter = activeChapter();
+      const noteText = noteInput.value.trim();
+      if (!chapter || !selectedTextForNote || !noteText) {
+        hideSelectionPopup();
+        window.getSelection()?.removeAllRanges();
+        return;
+      }
+      const note = {
+        id: "note-" + Date.now(),
+        bookId: activeBook().id,
+        chapterId: chapter.id,
+        chapterTitle: chapter.title,
+        selectedText: selectedTextForNote,
+        noteText,
+        createdAt: Date.now(),
+      };
+      notes.push(note);
+      saveNotes();
+      pendingNoteId = note.id;
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+      renderArticle();
+    });
+
+    noteInput.addEventListener("input", () => {
+      saveNoteButton.disabled = !noteInput.value.trim();
+    });
+
+    cancelNoteButton.addEventListener("click", () => {
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+    });
+
+    cancelNoteTextButton.addEventListener("click", () => {
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+    });
+
+    selectionPopup.addEventListener("mousedown", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("mousedown", (event) => {
+      if (!selectionPopup.classList.contains("open")) return;
+      if (selectionPopup.contains(event.target)) return;
+      if (content.contains(event.target)) return;
+      hideSelectionPopup();
+      window.getSelection()?.removeAllRanges();
+    });
+
+    noteList.addEventListener("click", (event) => {
+      const item = event.target.closest("[data-note-id]");
+      if (!item) return;
+      const note = notes.find((entry) => entry.id === item.dataset.noteId);
+      if (!note) return;
+      state.activeBookId = note.bookId;
+      state.activeId = note.chapterId;
+      pendingNoteId = note.id;
+      renderArticle();
+      document.body.classList.remove("menu-open");
+    });
+
+    search.addEventListener("input", () => {
+      state.query = search.value;
+      const first = filteredChapters()[0];
+      if (first && !filteredChapters().some((chapter) => chapter.id === state.activeId)) {
+        state.activeId = first.id;
+      }
+      renderArticle();
+    });
+
+    homeButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderHome();
+    });
+
+    bookstoreButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderBookstore();
+    });
+
+    aboutButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderAbout();
+    });
+
+    publicHomeButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderHome();
+    });
+
+    publicBookstoreButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderBookstore();
+    });
+
+    publicAboutButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderAbout();
+    });
+
+    importButton.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => importMarkdownFiles(fileInput.files));
+    dropZone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      dropZone.classList.add("drag-over");
+    });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+    dropZone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      dropZone.classList.remove("drag-over");
+      importMarkdownFiles(event.dataTransfer.files);
+    });
+
+    bookSelect.addEventListener("change", () => {
+      state.activeBookId = bookSelect.value;
+      state.activeId = chapters()[0]?.id;
+      localStorage.setItem("reader.activeBookId", state.activeBookId);
+      localStorage.setItem("reader.activeId", state.activeId || "");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderView();
+    });
+
+    document.getElementById("increaseFont").addEventListener("click", () => {
+      state.fontSize = Math.min(24, state.fontSize + 1);
+      localStorage.setItem("reader.fontSize", state.fontSize);
+      document.documentElement.style.setProperty("--font-size", state.fontSize + "px");
+    });
+
+    document.getElementById("decreaseFont").addEventListener("click", () => {
+      state.fontSize = Math.max(16, state.fontSize - 1);
+      localStorage.setItem("reader.fontSize", state.fontSize);
+      document.documentElement.style.setProperty("--font-size", state.fontSize + "px");
+    });
+
+    document.getElementById("themeButton").addEventListener("click", (event) => {
+      state.theme = state.theme === "dark" ? "light" : "dark";
+      localStorage.setItem("reader.theme", state.theme);
+      document.documentElement.dataset.theme = state.theme;
+      event.currentTarget.textContent = state.theme === "dark" ? "浅色" : "深色";
+    });
+
+    document.getElementById("menuButton").addEventListener("click", () => {
+      document.body.classList.toggle("menu-open");
+    });
+
+    document.getElementById("notesButton").addEventListener("click", () => {
+      document.body.classList.add("menu-open");
+      noteList.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") hideSelectionPopup();
+    });
+
+    window.addEventListener("scroll", () => {
+      updateProgress();
+      if (selectionPopup.classList.contains("open")) hideSelectionPopup();
+    }, { passive: true });
+    window.addEventListener("resize", updateProgress);
+
+    document.getElementById("themeButton").textContent = state.theme === "dark" ? "浅色" : "深色";
+    if (!chapters().some((chapter) => chapter.id === state.activeId)) {
+      state.activeId = chapters()[0]?.id;
+    }
+    renderBookPicker();
+    renderView();
+  </script>
+</body>
+</html>

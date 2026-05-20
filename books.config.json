@@ -8,7 +8,9 @@
       "id": "ai-literacy",
       "title": "给中文使用者的 AI 原生工作手册",
       "author": "Alex Liu",
+      "kicker": "AI Native Work Handbook",
       "description": "写给 Allie 和她这一代人的 AI 科普小书。从基础认知到组织协作，并附上工具、选型、自测与延伸学习指南。",
+      "pdfOutput": "downloads/ai-native-work-handbook.pdf",
       "sources": [
         {
           "part": "开篇",
@@ -77,6 +79,37 @@
           ],
           "chapterOffset": 0,
           "titleExcludes": ["创始人手册：构建 AI 原生创业公司"]
+        }
+      ]
+    },
+    {
+      "id": "finance-ai-playbook",
+      "title": "财务部门的 AI 转型实战手册",
+      "author": "刘晃（Alex Liu）",
+      "kicker": "Finance AI Playbook",
+      "description": "一个财务人从真实场景出发，写给财务团队的 AI 转型实战 Playbook。",
+      "singleOutput": "downloads/finance-ai-playbook.html",
+      "pdfOutput": "downloads/finance-ai-playbook.pdf",
+      "sources": [
+        {
+          "part": "开篇",
+          "files": [
+            "Books/Finance/Finance_AI_Playbook_Introduction.md"
+          ],
+          "chapterOffset": -1
+        },
+        {
+          "part": "正文",
+          "files": [
+            "Books/Finance/Finance_AI_Playbook_Ch1.md",
+            "Books/Finance/Finance_AI_Playbook_Ch2.md",
+            "Books/Finance/Finance_AI_Playbook_Ch3.md",
+            "Books/Finance/Finance_AI_Playbook_Ch4.md",
+            "Books/Finance/Finance_AI_Playbook_Ch5.md",
+            "Books/Finance/Finance_AI_Playbook_Ch6.md"
+          ],
+          "chapterOffset": 0,
+          "titleExcludes": ["Finance AI Playbook", "财务部门的 AI 转型实战手册"]
         }
       ]
     }

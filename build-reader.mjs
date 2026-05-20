@@ -124,6 +124,7 @@ const library = {
       title: book.title ?? `Book ${bookIndex + 1}`,
       author: book.author ?? "",
       description: book.description ?? "",
+      singleOutput: book.singleOutput ?? "",
       sources: book.sources ?? [{ part: "正文", files: book.files ?? "*.md" }],
     };
     const chapters = normalizedBook.sources
@@ -137,6 +138,7 @@ const library = {
       title: normalizedBook.title,
       author: normalizedBook.author,
       description: normalizedBook.description,
+      singleOutput: normalizedBook.singleOutput,
       chapters,
       chapterCount: chapters.length,
       wordCount: chapters.reduce((total, chapter) => total + chapter.wordCount, 0),
@@ -1982,12 +1984,22 @@ function writeReader(outputName, readerLibrary, title) {
 
 writeReader(outputFile, library, config.libraryTitle ?? "本地阅读器");
 
-if (library.books[0]) {
-  const firstBookLibrary = {
-    title: library.books[0].title,
+function writeSingleBook(book, outputName) {
+  const singleBookLibrary = {
+    title: book.title,
     authorTools: false,
     singleBook: true,
-    books: [library.books[0]],
+    books: [book],
   };
-  writeReader(singleBookOutputFile, firstBookLibrary, library.books[0].title);
+  writeReader(outputName, singleBookLibrary, book.title);
+}
+
+if (library.books[0]) {
+  writeSingleBook(library.books[0], singleBookOutputFile);
+}
+
+for (const book of library.books) {
+  if (book.singleOutput && book.singleOutput !== singleBookOutputFile) {
+    writeSingleBook(book, book.singleOutput);
+  }
 }

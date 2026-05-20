@@ -122,9 +122,7 @@ def chapter_labels(file_name: str, global_chapter: int) -> tuple[str, str]:
     return str(global_chapter), f"第 {global_chapter} 章"
 
 
-def load_chapters() -> tuple[dict, list[dict]]:
-    config = json.loads((ROOT / "books.config.json").read_text(encoding="utf-8"))
-    book = config["books"][0]
+def load_chapters(book: dict) -> list[dict]:
     chapters: list[dict] = []
     for source_index, source in enumerate(book.get("sources", []), start=1):
         for file_index, file_name in enumerate(source_files(source), start=1):
@@ -147,7 +145,7 @@ def load_chapters() -> tuple[dict, list[dict]]:
                 }
             )
     chapters.sort(key=lambda item: (item["global_chapter"], item["file_name"]))
-    return book, chapters
+    return chapters
 
 
 styles = getSampleStyleSheet()
@@ -517,10 +515,11 @@ def draw_page(canvas, doc):
     canvas.restoreState()
 
 
-def build_pdf() -> None:
-    book, chapters = load_chapters()
+def build_pdf(book: dict, output_file: Path) -> None:
+    chapters = load_chapters(book)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     doc = BookDocTemplate(
-        str(OUT_FILE),
+        str(output_file),
         pagesize=A4,
         rightMargin=17 * mm,
         leftMargin=17 * mm,
@@ -533,7 +532,7 @@ def build_pdf() -> None:
     story: list = []
 
     story.append(Spacer(1, 58 * mm))
-    story.append(Paragraph("AI Native Work Handbook", styles["CoverKicker"]))
+    story.append(Paragraph(html.escape(book.get("kicker", "AI Native Work Handbook")), styles["CoverKicker"]))
     story.append(Spacer(1, 12 * mm))
     story.append(Paragraph(html.escape(book["title"]), styles["CoverTitle"]))
     story.append(Spacer(1, 7 * mm))
@@ -568,8 +567,18 @@ def build_pdf() -> None:
         story.extend(markdown_to_flowables(chapter["markdown"], width))
 
     doc.multiBuild(story, onFirstPage=draw_page, onLaterPages=draw_page)
-    print(f"Wrote {OUT_FILE.relative_to(ROOT)}")
+    print(f"Wrote {output_file.relative_to(ROOT)}")
+
+
+def main() -> None:
+    config = json.loads((ROOT / "books.config.json").read_text(encoding="utf-8"))
+    for index, book in enumerate(config.get("books", [])):
+        output = book.get("pdfOutput")
+        if not output and index == 0:
+            output = str(OUT_FILE.relative_to(ROOT))
+        if output:
+            build_pdf(book, ROOT / output)
 
 
 if __name__ == "__main__":
-    build_pdf()
+    main()
